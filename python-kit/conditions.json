@@ -1,0 +1,507 @@
+{
+  "_about": "Water and use profiles. Each scores a design 0-100. targets give [poor, good] for a metric; the score rises linearly between them, and past poor it keeps falling (to minus one full weight). weights say how much each metric counts. constraints are hard limits; a design that breaks one is marked and penalised. load sets crew posture (kneeling, low_seat, seated), weights and centre of gravity heights; see stability.load_case. waves are a JONSWAP sea: significant height (m), peak period (s), gamma (1 developed swell, 3.3 wind chop, 5-7 short steep waves). depth_m is water depth, null for deep.",
+  "calm-lake": {
+    "description": "Sheltered lake or pond, flat water, tandem cruising at 4 mph.",
+    "water": "fresh",
+    "depth_m": null,
+    "speed_mph": 4.0,
+    "wind_mph": 0,
+    "waves": null,
+    "load": {
+      "crew_posture": "seated"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        6,
+        null
+      ],
+      "gm_in": [
+        1.5,
+        null
+      ],
+      "flood_angle": [
+        22,
+        null
+      ]
+    },
+    "targets": {
+      "resistance_lbf": [
+        6.0,
+        3.5
+      ],
+      "speed_at_power_mph": [
+        3.8,
+        4.8
+      ],
+      "gm_in": [
+        1.5,
+        4.0
+      ],
+      "flood_angle": [
+        24,
+        36
+      ],
+      "turn_index": [
+        0.22,
+        0.27
+      ],
+      "wetted_ft2": [
+        32,
+        24
+      ]
+    },
+    "weights": {
+      "resistance_lbf": 3,
+      "speed_at_power_mph": 2,
+      "gm_in": 1,
+      "flood_angle": 1,
+      "turn_index": 1,
+      "wetted_ft2": 0.5
+    }
+  },
+  "fast-flatwater": {
+    "description": "Fitness or marathon paddling on flat water at 5 mph. Speed first, stability only needs to be adequate.",
+    "water": "fresh",
+    "depth_m": null,
+    "speed_mph": 5.0,
+    "wind_mph": 0,
+    "waves": null,
+    "load": {
+      "crew_posture": "low_seat"
+    },
+    "power_w_per_paddler": 60,
+    "constraints": {
+      "freeboard_mid_in": [
+        5,
+        null
+      ],
+      "gm_in": [
+        0.8,
+        null
+      ],
+      "flood_angle": [
+        18,
+        null
+      ]
+    },
+    "targets": {
+      "resistance_lbf": [
+        9.0,
+        5.0
+      ],
+      "speed_at_power_mph": [
+        4.5,
+        5.8
+      ],
+      "gm_in": [
+        0.8,
+        2.5
+      ],
+      "turn_index": [
+        0.22,
+        0.27
+      ]
+    },
+    "weights": {
+      "resistance_lbf": 4,
+      "speed_at_power_mph": 3,
+      "gm_in": 1,
+      "turn_index": 1
+    }
+  },
+  "big-lake-chop": {
+    "description": "Open lake crossing into fetch-limited wind chop (about 1 ft, 2.4 s) with a 10 mph headwind.",
+    "water": "fresh",
+    "depth_m": null,
+    "speed_mph": 3.5,
+    "wind_mph": 10,
+    "waves": {
+      "hs_m": 0.3,
+      "tp_s": 2.4,
+      "gamma": 3.3
+    },
+    "load": {
+      "crew_posture": "seated"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        7,
+        null
+      ],
+      "gm_in": [
+        1.5,
+        null
+      ],
+      "flood_angle": [
+        25,
+        null
+      ],
+      "bow_wet_prob": [
+        null,
+        0.15
+      ]
+    },
+    "targets": {
+      "resistance_lbf": [
+        14,
+        7
+      ],
+      "bow_wet_prob": [
+        0.15,
+        0.01
+      ],
+      "pitch_sig_deg": [
+        9,
+        5
+      ],
+      "flood_angle": [
+        26,
+        38
+      ],
+      "secondary_ratio": [
+        0.6,
+        0.95
+      ],
+      "side_windage_ft2": [
+        20,
+        13
+      ],
+      "gm_in": [
+        1.5,
+        4.0
+      ],
+      "turn_index": [
+        0.23,
+        0.27
+      ]
+    },
+    "weights": {
+      "resistance_lbf": 2,
+      "bow_wet_prob": 3,
+      "pitch_sig_deg": 1,
+      "flood_angle": 2,
+      "secondary_ratio": 1,
+      "side_windage_ft2": 1,
+      "gm_in": 1,
+      "turn_index": 1.5
+    }
+  },
+  "boat-wakes": {
+    "description": "Busy river or lake with short, steep boat wakes (about 1 ft, 1.7 s) taken bow-on.",
+    "water": "fresh",
+    "depth_m": null,
+    "speed_mph": 3.5,
+    "wind_mph": 0,
+    "waves": {
+      "hs_m": 0.3,
+      "tp_s": 1.7,
+      "gamma": 6
+    },
+    "load": {
+      "crew_posture": "seated"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        6.5,
+        null
+      ],
+      "gm_in": [
+        1.5,
+        null
+      ],
+      "flood_angle": [
+        24,
+        null
+      ]
+    },
+    "targets": {
+      "bow_wet_prob": [
+        0.35,
+        0.03
+      ],
+      "pitch_sig_deg": [
+        10,
+        5
+      ],
+      "resistance_lbf": [
+        16,
+        7
+      ],
+      "flood_angle": [
+        26,
+        38
+      ],
+      "secondary_ratio": [
+        0.6,
+        0.95
+      ]
+    },
+    "weights": {
+      "bow_wet_prob": 3,
+      "pitch_sig_deg": 2,
+      "resistance_lbf": 1,
+      "flood_angle": 1,
+      "secondary_ratio": 1
+    }
+  },
+  "coastal-swell": {
+    "description": "Sheltered coast or very large lake with long swell (2 ft, 7 s) in salt water.",
+    "water": "salt",
+    "depth_m": null,
+    "speed_mph": 3.5,
+    "wind_mph": 5,
+    "waves": {
+      "hs_m": 0.6,
+      "tp_s": 7.0,
+      "gamma": 1.0
+    },
+    "load": {
+      "crew_posture": "seated"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        7,
+        null
+      ],
+      "gm_in": [
+        1.5,
+        null
+      ],
+      "flood_angle": [
+        26,
+        null
+      ]
+    },
+    "targets": {
+      "resistance_lbf": [
+        7,
+        4
+      ],
+      "bow_wet_prob": [
+        0.1,
+        0.0
+      ],
+      "flood_angle": [
+        28,
+        40
+      ],
+      "secondary_ratio": [
+        0.6,
+        0.95
+      ],
+      "side_windage_ft2": [
+        20,
+        13
+      ],
+      "gm_in": [
+        1.5,
+        4.0
+      ],
+      "turn_index": [
+        0.23,
+        0.27
+      ]
+    },
+    "weights": {
+      "resistance_lbf": 2,
+      "bow_wet_prob": 1,
+      "flood_angle": 2,
+      "secondary_ratio": 1,
+      "side_windage_ft2": 1,
+      "gm_in": 1,
+      "turn_index": 1.5
+    }
+  },
+  "shallow-river": {
+    "description": "Slow river, marsh or lake margin about 2 ft deep, 3.5 mph. Shallow water raises wave drag and draft matters.",
+    "water": "fresh",
+    "depth_m": 0.6,
+    "speed_mph": 3.5,
+    "wind_mph": 0,
+    "waves": null,
+    "load": {
+      "crew_posture": "seated"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        6,
+        null
+      ],
+      "gm_in": [
+        1.5,
+        null
+      ],
+      "flood_angle": [
+        22,
+        null
+      ]
+    },
+    "targets": {
+      "resistance_lbf": [
+        6,
+        3.5
+      ],
+      "draft_max_in": [
+        5.5,
+        3.8
+      ],
+      "turn_index": [
+        0.27,
+        0.22
+      ],
+      "gm_in": [
+        1.5,
+        4.0
+      ],
+      "flood_angle": [
+        24,
+        36
+      ]
+    },
+    "weights": {
+      "resistance_lbf": 2,
+      "draft_max_in": 2,
+      "turn_index": 2,
+      "gm_in": 1,
+      "flood_angle": 1
+    }
+  },
+  "moving-water": {
+    "description": "Class I-II river with standing waves and eddy turns, paddlers kneeling, 3 mph through the water.",
+    "water": "fresh",
+    "depth_m": 0.8,
+    "speed_mph": 3.0,
+    "wind_mph": 0,
+    "waves": {
+      "hs_m": 0.35,
+      "tp_s": 1.6,
+      "gamma": 5
+    },
+    "load": {
+      "crew_posture": "kneeling"
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        7,
+        null
+      ],
+      "gm_in": [
+        2.0,
+        null
+      ],
+      "flood_angle": [
+        28,
+        null
+      ]
+    },
+    "targets": {
+      "turn_index": [
+        0.26,
+        0.2
+      ],
+      "end_depth_ratio": [
+        0.5,
+        0.25
+      ],
+      "bow_wet_prob": [
+        0.35,
+        0.05
+      ],
+      "flood_angle": [
+        28,
+        42
+      ],
+      "secondary_ratio": [
+        0.6,
+        0.95
+      ],
+      "resistance_lbf": [
+        14,
+        6
+      ]
+    },
+    "weights": {
+      "turn_index": 3,
+      "end_depth_ratio": 1,
+      "bow_wet_prob": 2,
+      "flood_angle": 2,
+      "secondary_ratio": 2,
+      "resistance_lbf": 0.5
+    }
+  },
+  "kids-pack-boat": {
+    "description": "A small pack boat for a young child on a calm pond or sheltered shore, sitting low on a pad with a short double paddle, about 2 mph.",
+    "water": "fresh",
+    "depth_m": null,
+    "speed_mph": 2.0,
+    "wind_mph": 0,
+    "waves": null,
+    "paddlers": 1,
+    "power_w_per_paddler": 8,
+    "load": {
+      "crew_vcg_in": 8.5
+    },
+    "constraints": {
+      "freeboard_mid_in": [
+        4,
+        null
+      ],
+      "gm_in": [
+        3,
+        null
+      ],
+      "flood_angle": [
+        25,
+        null
+      ],
+      "rm_max_ftlb": [
+        10,
+        null
+      ]
+    },
+    "targets": {
+      "rm_max_ftlb": [
+        10,
+        24
+      ],
+      "flood_angle": [
+        26,
+        40
+      ],
+      "gm_in": [
+        3,
+        7
+      ],
+      "gunwale_beam_in": [
+        28,
+        23
+      ],
+      "freeboard_mid_in": [
+        8,
+        5.5
+      ],
+      "speed_at_power_mph": [
+        2.2,
+        3.0
+      ],
+      "turn_index": [
+        0.24,
+        0.27
+      ],
+      "side_windage_ft2": [
+        5,
+        3
+      ]
+    },
+    "weights": {
+      "rm_max_ftlb": 3,
+      "flood_angle": 2,
+      "gm_in": 1,
+      "gunwale_beam_in": 2,
+      "freeboard_mid_in": 1,
+      "speed_at_power_mph": 1.5,
+      "turn_index": 1,
+      "side_windage_ft2": 1
+    }
+  }
+}

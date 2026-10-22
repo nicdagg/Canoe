@@ -1,0 +1,36 @@
+{
+  "hull": {
+    "length": 180.0,
+    "beam": 32.0,
+    "depth": 12.5,
+    "mid_offset": 0.0,
+    "tumblehome": 0.0,
+    "tumble_start": 0.6,
+    "bow": {
+      "rocker": 1.5,
+      "stem_rise": 3.0,
+      "sheer_exp": 2.5,
+      "stem_angle": 72.0,
+      "stem_radius": 16.0,
+      "section_exp": 2.4,
+      "plan_exp": 2.2,
+      "end_fine": 0.85,
+      "tumble_len": 60.0
+    },
+    "stern": {
+      "rocker": 1.5,
+      "stem_rise": 3.0,
+      "sheer_exp": 2.5,
+      "stem_angle": 72.0,
+      "stem_radius": 16.0,
+      "section_exp": 2.4,
+      "plan_exp": 2.2,
+      "end_fine": 0.85,
+      "tumble_len": 60.0
+    }
+  },
+  "hydro": {
+    "hull_mass_lb": 50.0,
+    "payload_lb": 330.0
+  }
+}
