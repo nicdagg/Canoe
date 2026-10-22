@@ -2,7 +2,7 @@
 
 Design a canoe in your browser: shape the hull with sliders, see the lines plan and a 3D view, check stability, drag and behaviour in waves, and plan a foam plug, mold and laminate for building it.
 
-**Open it:** https://nicdagg.github.io/canoe/
+**Open it:** https://nicdagg.github.io/Canoe/
 
 ## Put it on your iPhone home screen
 
