@@ -378,7 +378,10 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
 .lc-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 14px; }
 .lc-head .an-k { margin: 0; }
 .an-leg i.lc-grad { width: 64px; height: 10px; border: 1px solid var(--line); border-radius: 2px; background: linear-gradient(to right, var(--paper), var(--wl)); }
-.an-leg i.lc-sw { background: color-mix(in srgb, var(--fair) 60%, var(--paper)); border: 1px solid var(--bt); }
+.an-leg i.lc-sw { background: color-mix(in srgb, var(--accent) 55%, var(--paper)); border: 1px solid var(--accent); }
+.an-leg i.lc-rb { width: 3px; height: 12px; background: var(--ink); border-radius: 1px; }
+.lc-quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.lc-msg b.lc-note { display: block; font-weight: 600; margin-bottom: 2px; }
 .lc-layers { padding-block: 4px 2px; }
 .lc-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 4px; }
 .lc-bar .chips { padding-block: 0; }
@@ -735,16 +738,18 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       <p class="an-desc">Build the hull laminate layer by layer: a base skin over the whole hull, then zones with extra layers or a foam core, and the gunwales, ribs and stringers. The designer works out the weight and checks each panel for flex (oil canning) and strength, and suggests where a core floor or ribs would help. Figures are design estimates from typical material properties, so test a panel of your real layup before you commit.</p>
       <div class="vz-read lm-read" id="lm-read"></div>
       <section class="lc" id="lc" aria-labelledby="lc-h">
-        <div class="lc-head"><h3 class="an-k" id="lc-h">Core placement</h3><span class="an-leg"><i class="lc-grad"></i>flat to tight bend <i class="lm-sw lc-sw"></i>core</span></div>
-        <p class="hint lm-p">Draw where the foam core goes in each core layer, on the hull opened out flat: the keel runs along the middle, the sheer is at the top and bottom, the stern on the left. Darker shading is where the hull bends more tightly, so a flat core sheet needs scoring or kerfing to follow it there. Your strokes are smoothed and made the same on both sides of the keel. With nothing drawn, a core covers its whole zone.</p>
+        <div class="lc-head"><h3 class="an-k" id="lc-h">Cores and ribs: where they go</h3><span class="an-leg" id="lc-leg"></span></div>
+        <p class="hint lm-p">Draw straight onto the hull, opened out flat: the keel runs along the middle, the sheer is at the top and bottom, the stern on the left. <b>Outline</b> draws round an area of foam core, <b>Strip</b> draws a band of it, <b>Rib</b> drops a rib across the hull where you tap (drag a rib to move it) and <b>Erase</b> removes whatever you tap. Everything is mirrored about the keel. Red and yellow mark the panels that fail or nearly fail a test, so that is where a core or ribs help most.</p>
+        <div class="lc-quick" id="lc-quick"><button type="button" class="btn" data-q="fix">Fix it for me</button><button type="button" class="btn" data-q="floor">Add a football floor</button><button type="button" class="btn" data-q="ribs">Add ribs evenly</button></div>
         <div class="chips lc-layers" id="lc-layers" role="group" aria-label="Core layer to draw"></div>
         <div class="lc-bar" id="lc-bar">
-          <div class="chips" id="lc-tools" role="group" aria-label="Drawing tool"><button type="button" data-t="area">Outline</button><button type="button" data-t="strip">Strip</button><button type="button" data-t="erase">Erase</button></div>
+          <div class="chips" id="lc-tools" role="group" aria-label="Drawing tool"><button type="button" data-t="area">Outline</button><button type="button" data-t="strip">Strip</button><button type="button" data-t="rib">Rib</button><button type="button" data-t="erase">Erase</button></div>
+          <div class="chips" id="lc-under" role="group" aria-label="Shade the hull by"><button type="button" data-u="need">Trouble spots</button><button type="button" data-u="bend">Bends</button></div>
           <span class="stp sm" id="lc-wbox"><span>Strip width</span><button type="button" data-d="-1" aria-label="Narrower">−</button><b id="lc-w"></b><button type="button" data-d="1" aria-label="Wider">+</button></span>
           <button type="button" class="lm-tog" id="lc-fa" aria-pressed="false">Same at bow and stern</button>
           <span class="lc-acts"><button type="button" class="lm-link" id="lc-undo">Undo</button><button type="button" class="lm-link" id="lc-clear">Clear drawing</button></span>
         </div>
-        <div class="lc-cv" id="lc-box"><canvas id="lc-cv" aria-label="Hull opened out flat, shaded by how tightly it bends, with the core drawn on it"></canvas></div>
+        <div class="lc-cv" id="lc-box"><canvas id="lc-cv" aria-label="Hull opened out flat, with the foam core and ribs drawn on it"></canvas></div>
         <p class="lc-read" id="lc-read"></p>
         <p class="lc-msg" id="lc-msg" role="status"></p>
       </section>
@@ -753,7 +758,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         <div class="lm-out">
           <figure class="an-fig lm-fig">
             <figcaption>Hull shell, opened out flat <span class="an-leg" id="lm-leg"></span></figcaption>
-            <div class="chips" id="lm-metric" role="group" aria-label="Colour by"><button type="button" data-m="grade">Overall</button><button type="button" data-m="flex">Flex</button><button type="button" data-m="sf">Strength</button><button type="button" data-m="thick">Thickness</button><button type="button" data-m="weight">Weight</button></div>
+            <div class="chips" id="lm-metric" role="group" aria-label="Colour by"><button type="button" data-m="grade">Overall</button><button type="button" data-m="flex">Flex</button><button type="button" data-m="sf">Strength</button><button type="button" data-m="rock">Rock</button><button type="button" data-m="thick">Thickness</button><button type="button" data-m="weight">Weight</button></div>
             <div class="md-figbox lm-mapbox" id="lm-map"></div>
             <p class="hint lm-p">Each side of the hull is the same. Hover a cell for its laminate and checks. Brown lines edge the foam core.</p>
           </figure>
@@ -1239,6 +1244,37 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       var front = 2 * trapz(yy, zz), above = H.x.map(function (x, k) { return Math.max(0, H.sheer[k] - Math.max(up.h0, H.keel[k])); });
       return { front: front / 144, side: trapz(above, H.x) / 144 };
     }
+    // Whole outside skin of the hull, both sides, in square inches.
+    function skinArea(H) { return wettedArea(H, 1e9); }
+    // Squat: how far the hull settles and tips when it moves (Tuck's slender-body result). The dip in the water
+    // surface along the hull is driven by how fast the section area changes along the length:
+    //   sinkage = Cs V / L^2 * F,   trim = Ct V / L^3 * F,   F = Fh^2 / sqrt(1 - Fh^2),   Fh = U / sqrt(g h)
+    //   Cs = -L^2 / (2 pi V Awp) IntInt B'(x) S'(xi) ln|x - xi|,   Ct likewise with (x B)' and the waterplane inertia.
+    // Tuck's formula is for shallow water. In deep water the same formula with h = 0.3 Lwl matches towing-tank
+    // sinkage of slender hulls (about 0.1 to 0.2% of length at Froude 0.3), so the depth is capped there.
+    function squat(H, up, U, depth) {
+      var n = 80, xa = up.x_aft, xf = up.x_fwd, L = xf - xa, dx = L / n, B = [], S = [], i, j;
+      if (!(L > 0) || !(U > 0)) return { sink: 0, trim: 0, cs: 0, fh: 0 };
+      for (i = 0; i <= n; i++) { var x = xa + i * dx; B.push(2 * interp(H.x, up.hw, x)); S.push(interp(H.x, up.area, x)); }
+      B[0] = B[n] = 0; S[0] = S[n] = 0;
+      var Gf = function (u) { u = Math.abs(u); return u < 1e-12 ? 0 : u * u / 2 * Math.log(u) - 0.75 * u * u; };
+      var lcf = up.lcf_in, Iz = 0, It = 0, IL = 0;
+      for (i = 0; i <= n; i++) IL += (i === 0 || i === n ? 0.5 : 1) * B[i] * Math.pow(xa + i * dx - lcf, 2) * dx;
+      for (i = 0; i < n; i++) {
+        var a = xa + i * dx, b = a + dx, Bp = (B[i + 1] - B[i]) / dx;
+        var Mp = ((b - lcf) * B[i + 1] - (a - lcf) * B[i]) / dx;         // slope of (x - lcf) B on this panel
+        for (j = 0; j < n; j++) {
+          var c = xa + j * dx, d = c + dx, Sp = (S[j + 1] - S[j]) / dx;
+          var K = -(Gf(b - d) - Gf(b - c) - Gf(a - d) + Gf(a - c));      // IntInt ln|x - xi| over the two panels
+          Iz += Bp * Sp * K; It += Mp * Sp * K;
+        }
+      }
+      var awp = up.awp_ft2 * 144, V = up.vol, h = Math.min(isFinite(depth) ? depth : Infinity, 0.3 * L * IN);
+      var fh = Math.min(U / Math.sqrt(G * h), 0.95), F = fh * fh / Math.sqrt(1 - fh * fh);
+      var cs = -L * L / (2 * Math.PI * V * awp) * Iz, ct = -L * L * L / (2 * Math.PI * V * IL) * It;
+      // sink in inches (down positive); trim in inches over the waterline length (bow down positive)
+      return { sink: Math.max(0, cs * V / (L * L) * F), trim: ct * V / (L * L * L) * F * L, cs: cs, fh: fh };
+    }
     function calm(ctx, mph, headwind) {
       var w = ctx.w, U = mph * MPH, up = ctx.up, S = up.wetted_ft2 * 0.09290304, L = up.lwl_in * IN;
       var Rf = 0.5 * w.rho * U * U * S * (0.075 / Math.pow(Math.log10(U * L / w.nu) - 2, 2)) * ctx.k1;
@@ -1342,13 +1378,18 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
 
     /* ---------- one design in one condition ---------- */
     function evaluate(p, cond, detail) {
-      var H = sample(p), lc = loadCase(p, cond.load), w = WATER[cond.water || 'fresh'], b = buf(H);
-      var cap = volume(H, 0, p.depth, b).V * w.lbin3, out = { capacity_lb: cap, disp_lb: lc.disp };
+      var H = sample(p), skin = skinArea(H) / 144;
+      // In a shape search the hull weight follows the amount of skin, so a bigger hull is a heavier one.
+      if (p.hullPerFt2 > 0) p = Object.assign({}, p, { hullLb: p.hullPerFt2 * skin });
+      var lc = loadCase(p, cond.load), w = WATER[cond.water || 'fresh'], b = buf(H);
+      var cap = volume(H, 0, p.depth, b).V * w.lbin3, out = { capacity_lb: cap, disp_lb: lc.disp, skin_ft2: skin, hull_lb: p.hullLb };
       if (cap <= lc.disp * 1.02) { out.overloaded = true; return out; }
       var up = upright(H, lc.disp, w.lbin3), st = stability(H, up, lc.vcg, detail ? 70 : 60);
       var depth = cond.depth_m ? cond.depth_m : Infinity, v0 = cond.speed_mph || 4;
-      var d = Math.sqrt(4 * 2 * up.amax_in2 / Math.PI) / up.lwl_in;
-      var ctx = { H: H, up: up, w: w, depth: depth, off: offsets(H, up), k1: 1 + 1.5 * Math.pow(d, 1.5) + 7 * Math.pow(d, 3), wind: windage(H, up) };
+      // Drag is worked out on the hull as it rides at cruise: settled a little deeper than at rest.
+      var sq = squat(H, up, v0 * MPH, depth), run = sq.sink > 1e-4 ? upright(H, lc.disp + sq.sink * up.awp_ft2 * 144 * w.lbin3, w.lbin3) : up;
+      var d = Math.sqrt(4 * 2 * run.amax_in2 / Math.PI) / run.lwl_in;
+      var ctx = { H: H, up: run, w: w, depth: depth, off: offsets(H, run), k1: 1 + 1.5 * Math.pow(d, 1.5) + 7 * Math.pow(d, 3), wind: windage(H, up) };
       var band = [v0 - 0.5, v0, v0 + 0.5].map(function (v) { return calm(ctx, v, cond.wind_mph || 0); });
       var mean = function (k) { return (band[0][k] + band[1][k] + band[2][k]) / 3; };
       var paddlers = cond.paddlers || (lc.crew > 260 ? 2 : 1), pw = (cond.power_w_per_paddler || 40) * paddlers;
@@ -1366,6 +1407,13 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       var Al = trapz(dr, H.x), xc = trapz(dr.map(function (v, k) { return v * H.x[k]; }), H.x) / Al;
       var Il = trapz(dr.map(function (v, k) { return v * Math.pow(H.x[k] - xc, 2); }), H.x), mid = (up.x_aft + up.x_fwd) / 2, es = 0, en = 0;
       H.x.forEach(function (x, k) { if (Math.abs(x - mid) > 0.3 * up.lwl_in) { es += dr[k]; en++; } });
+      // Tracking: a hull resists being swung by the water its ends have to push sideways, which goes with draft squared
+      // times distance from the pivot squared. 1 would be a straight keel at full draft from end to end, 0 spins freely.
+      var d2 = dr.map(function (v) { return v * v; }), A2 = trapz(d2, H.x), x2 = A2 > 0 ? trapz(d2.map(function (v, k) { return v * H.x[k]; }), H.x) / A2 : 0;
+      var yawD = trapz(d2.map(function (v, k) { return v * Math.pow(H.x[k] - x2, 2); }), H.x), dmax = Math.max.apply(null, dr);
+      // Reach: from the middle of the boat out to the gunwale and down to the water, at each paddler's seat.
+      var reachAt = function (f) { var q = H.M.at(-p.length / 2 + f * p.length, 31); return q.y[30] + (q.sheer - up.h0); };
+      var reach = paddlers >= 2 ? (reachAt(0.72) + reachAt(0.15)) / 2 : reachAt(0.5 + H.M.mid / p.length);
       Object.assign(out, {
         draft_mid_in: up.draft_mid_in, draft_max_in: up.draft_max_in, freeboard_mid_in: up.freeboard_mid_in, lwl_in: up.lwl_in, bwl_in: up.bwl_in,
         lwl_bwl: up.lwl_bwl, cb: up.cb, cp: up.cp, cm: up.cm, cwp: up.cwp, wetted_ft2: up.wetted_ft2, ppi_lb: up.ppi_lb, kmt_in: up.kmt_in,
@@ -1374,8 +1422,11 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         calm_resistance_lbf: mean('t'), friction_lbf: mean('f'), wave_lbf: mean('w'), air_lbf: mean('a'),
         speed_at_power_mph: sb, power_w: pw, paddlers: paddlers, froude: band[1].fn,
         front_windage_ft2: ctx.wind.front, side_windage_ft2: ctx.wind.side,
-        gunwale_beam_in: p.beam - 2 * (p.tumble || 0),
-        lateral_area_ft2: Al / 144, turn_index: Math.sqrt(Il / Al) / up.lwl_in, end_depth_ratio: en ? es / en / Math.max.apply(null, dr) : 0,
+        gunwale_beam_in: p.beam - 2 * (p.tumble || 0), reach_in: reach,
+        sinkage_in: sq.sink, running_trim_in: sq.trim, squat_cs: sq.cs,
+        lateral_area_ft2: Al / 144, windage_ratio: ctx.wind.side / (Al / 144),
+        track_index: dmax > 0 ? yawD / (dmax * dmax * Math.pow(up.lwl_in, 3) / 12) : 0,
+        turn_index: Math.sqrt(Il / Al) / up.lwl_in, end_depth_ratio: en ? es / en / dmax : 0,
         rocker_total_in: p.b_rocker + p.s_rocker, added_resistance_lbf: 0
       });
       var R = null;
@@ -1519,7 +1570,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       return { we: we, sg: sg, k: kw, kx: kxc, ky: kyc, e3: e3, e5: e5, e4: e4, alpha: al };
     }
 
-    return { makeModel: makeModel, interp: interp, trapz: trapz, evaluate: evaluate, score: score, prepare: prepare, kelvin: kelvin, motionAt: motionAt };
+    return { makeModel: makeModel, interp: interp, trapz: trapz, skin: function (p) { return skinArea(sample(p)) / 144; }, evaluate: evaluate, score: score, prepare: prepare, kelvin: kelvin, motionAt: motionAt };
   }
   var E = ENGINE();
   var makeModel = E.makeModel, interp = E.interp, trapz = E.trapz;
@@ -2435,7 +2486,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
 
   /* ---------- analysis panel: water profiles, results, optimizer ---------- */
   // Same profiles as conditions.json in the canoe_analysis kit. targets are [poor, good]; constraints [min, max].
-  var CONDS = {"calm-lake":{"description":"Sheltered lake or pond, flat water, tandem cruising at 4 mph.","water":"fresh","depth_m":null,"speed_mph":4.0,"wind_mph":0,"waves":null,"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6,null],"gm_in":[1.5,null],"flood_angle":[22,null]},"targets":{"resistance_lbf":[6.0,3.5],"speed_at_power_mph":[3.8,4.8],"gm_in":[1.5,4.0],"flood_angle":[24,36],"turn_index":[0.22,0.27],"wetted_ft2":[32,24]},"weights":{"resistance_lbf":3,"speed_at_power_mph":2,"gm_in":1,"flood_angle":1,"turn_index":1,"wetted_ft2":0.5}},"fast-flatwater":{"description":"Fitness or marathon paddling on flat water at 5 mph. Speed first, stability only needs to be adequate.","water":"fresh","depth_m":null,"speed_mph":5.0,"wind_mph":0,"waves":null,"load":{"crew_posture":"low_seat"},"power_w_per_paddler":60,"constraints":{"freeboard_mid_in":[5,null],"gm_in":[0.8,null],"flood_angle":[18,null]},"targets":{"resistance_lbf":[9.0,5.0],"speed_at_power_mph":[4.5,5.8],"gm_in":[0.8,2.5],"turn_index":[0.22,0.27]},"weights":{"resistance_lbf":4,"speed_at_power_mph":3,"gm_in":1,"turn_index":1}},"big-lake-chop":{"description":"Open lake crossing into fetch-limited wind chop (about 1 ft, 2.4 s) with a 10 mph headwind.","water":"fresh","depth_m":null,"speed_mph":3.5,"wind_mph":10,"waves":{"hs_m":0.3,"tp_s":2.4,"gamma":3.3},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[1.5,null],"flood_angle":[25,null],"bow_wet_prob":[null,0.15]},"targets":{"resistance_lbf":[14,7],"bow_wet_prob":[0.15,0.01],"pitch_sig_deg":[9,5],"flood_angle":[26,38],"secondary_ratio":[0.6,0.95],"side_windage_ft2":[20,13],"gm_in":[1.5,4.0],"turn_index":[0.23,0.27]},"weights":{"resistance_lbf":2,"bow_wet_prob":3,"pitch_sig_deg":1,"flood_angle":2,"secondary_ratio":1,"side_windage_ft2":1,"gm_in":1,"turn_index":1.5}},"boat-wakes":{"description":"Busy river or lake with short, steep boat wakes (about 1 ft, 1.7 s) taken bow-on.","water":"fresh","depth_m":null,"speed_mph":3.5,"wind_mph":0,"waves":{"hs_m":0.3,"tp_s":1.7,"gamma":6},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6.5,null],"gm_in":[1.5,null],"flood_angle":[24,null]},"targets":{"bow_wet_prob":[0.35,0.03],"pitch_sig_deg":[10,5],"resistance_lbf":[16,7],"flood_angle":[26,38],"secondary_ratio":[0.6,0.95]},"weights":{"bow_wet_prob":3,"pitch_sig_deg":2,"resistance_lbf":1,"flood_angle":1,"secondary_ratio":1}},"coastal-swell":{"description":"Sheltered coast or very large lake with long swell (2 ft, 7 s) in salt water.","water":"salt","depth_m":null,"speed_mph":3.5,"wind_mph":5,"waves":{"hs_m":0.6,"tp_s":7.0,"gamma":1.0},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[1.5,null],"flood_angle":[26,null]},"targets":{"resistance_lbf":[7,4],"bow_wet_prob":[0.1,0.0],"flood_angle":[28,40],"secondary_ratio":[0.6,0.95],"side_windage_ft2":[20,13],"gm_in":[1.5,4.0],"turn_index":[0.23,0.27]},"weights":{"resistance_lbf":2,"bow_wet_prob":1,"flood_angle":2,"secondary_ratio":1,"side_windage_ft2":1,"gm_in":1,"turn_index":1.5}},"shallow-river":{"description":"Slow river, marsh or lake margin about 2 ft deep, 3.5 mph. Shallow water raises wave drag and draft matters.","water":"fresh","depth_m":0.6,"speed_mph":3.5,"wind_mph":0,"waves":null,"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6,null],"gm_in":[1.5,null],"flood_angle":[22,null]},"targets":{"resistance_lbf":[6,3.5],"draft_max_in":[5.5,3.8],"turn_index":[0.27,0.22],"gm_in":[1.5,4.0],"flood_angle":[24,36]},"weights":{"resistance_lbf":2,"draft_max_in":2,"turn_index":2,"gm_in":1,"flood_angle":1}},"moving-water":{"description":"Class I-II river with standing waves and eddy turns, paddlers kneeling, 3 mph through the water.","water":"fresh","depth_m":0.8,"speed_mph":3.0,"wind_mph":0,"waves":{"hs_m":0.35,"tp_s":1.6,"gamma":5},"load":{"crew_posture":"kneeling"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[2.0,null],"flood_angle":[28,null]},"targets":{"turn_index":[0.26,0.2],"end_depth_ratio":[0.5,0.25],"bow_wet_prob":[0.35,0.05],"flood_angle":[28,42],"secondary_ratio":[0.6,0.95],"resistance_lbf":[14,6]},"weights":{"turn_index":3,"end_depth_ratio":1,"bow_wet_prob":2,"flood_angle":2,"secondary_ratio":2,"resistance_lbf":0.5}},"kids-pack-boat":{"description":"A small pack boat for a young child on a calm pond or sheltered shore, sitting low on a pad with a short double paddle, about 2 mph.","water":"fresh","depth_m":null,"speed_mph":2.0,"wind_mph":0,"waves":null,"paddlers":1,"power_w_per_paddler":8,"load":{"crew_vcg_in":8.5},"constraints":{"freeboard_mid_in":[4,null],"gm_in":[3,null],"flood_angle":[25,null],"rm_max_ftlb":[10,null]},"targets":{"rm_max_ftlb":[10,24],"flood_angle":[26,40],"gm_in":[3,7],"gunwale_beam_in":[28,23],"freeboard_mid_in":[8,5.5],"speed_at_power_mph":[2.2,3.0],"turn_index":[0.24,0.27],"side_windage_ft2":[5,3]},"weights":{"rm_max_ftlb":3,"flood_angle":2,"gm_in":1,"gunwale_beam_in":2,"freeboard_mid_in":1,"speed_at_power_mph":1.5,"turn_index":1,"side_windage_ft2":1}}};
+  var CONDS = {"calm-lake":{"description":"Sheltered lake or pond, flat water with a light breeze, tandem cruising at 4 mph.","water":"fresh","depth_m":null,"speed_mph":4.0,"wind_mph":4,"waves":null,"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6,null],"gm_in":[1.5,null],"flood_angle":[22,null]},"targets":{"resistance_lbf":[6.0,3.5],"speed_at_power_mph":[3.8,4.8],"gm_in":[1.5,4.0],"flood_angle":[24,36],"wetted_ft2":[32,24],"track_index":[0.45,0.65],"reach_in":[24.5,20.5],"windage_ratio":[3.2,2.2]},"weights":{"resistance_lbf":3,"speed_at_power_mph":2,"gm_in":1,"flood_angle":1.5,"wetted_ft2":0.5,"track_index":2,"reach_in":1.5,"windage_ratio":1}},"fast-flatwater":{"description":"Fitness or marathon paddling on flat water at 5 mph. Speed first, stability only needs to be adequate.","water":"fresh","depth_m":null,"speed_mph":5.0,"wind_mph":0,"waves":null,"load":{"crew_posture":"low_seat"},"power_w_per_paddler":60,"constraints":{"freeboard_mid_in":[5,null],"gm_in":[0.8,null],"flood_angle":[18,null]},"targets":{"resistance_lbf":[9.0,5.0],"speed_at_power_mph":[4.5,5.8],"gm_in":[0.8,2.5],"track_index":[0.5,0.7],"reach_in":[24,20]},"weights":{"resistance_lbf":4,"speed_at_power_mph":3,"gm_in":1,"track_index":1.5,"reach_in":1}},"big-lake-chop":{"description":"Open lake crossing into fetch-limited wind chop (about 1 ft, 2.4 s) with a 10 mph headwind.","water":"fresh","depth_m":null,"speed_mph":3.5,"wind_mph":10,"waves":{"hs_m":0.3,"tp_s":2.4,"gamma":3.3},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[1.5,null],"flood_angle":[25,null],"bow_wet_prob":[null,0.15]},"targets":{"resistance_lbf":[14,7],"bow_wet_prob":[0.15,0.01],"pitch_sig_deg":[9,5],"flood_angle":[26,38],"secondary_ratio":[0.6,0.95],"side_windage_ft2":[20,13],"gm_in":[1.5,4.0],"track_index":[0.45,0.62],"windage_ratio":[3.2,2.2],"reach_in":[24.5,20.5]},"weights":{"resistance_lbf":2,"bow_wet_prob":3,"pitch_sig_deg":1,"flood_angle":2,"secondary_ratio":1,"side_windage_ft2":1,"gm_in":1,"track_index":1.5,"windage_ratio":1,"reach_in":1}},"boat-wakes":{"description":"Busy river or lake with short, steep boat wakes (about 1 ft, 1.7 s) taken bow-on.","water":"fresh","depth_m":null,"speed_mph":3.5,"wind_mph":0,"waves":{"hs_m":0.3,"tp_s":1.7,"gamma":6},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6.5,null],"gm_in":[1.5,null],"flood_angle":[24,null]},"targets":{"bow_wet_prob":[0.35,0.03],"pitch_sig_deg":[10,5],"resistance_lbf":[16,7],"flood_angle":[26,38],"secondary_ratio":[0.6,0.95]},"weights":{"bow_wet_prob":3,"pitch_sig_deg":2,"resistance_lbf":1,"flood_angle":1,"secondary_ratio":1}},"coastal-swell":{"description":"Sheltered coast or very large lake with long swell (2 ft, 7 s) in salt water.","water":"salt","depth_m":null,"speed_mph":3.5,"wind_mph":5,"waves":{"hs_m":0.6,"tp_s":7.0,"gamma":1.0},"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[1.5,null],"flood_angle":[26,null]},"targets":{"resistance_lbf":[7,4],"bow_wet_prob":[0.1,0.0],"flood_angle":[28,40],"secondary_ratio":[0.6,0.95],"side_windage_ft2":[20,13],"gm_in":[1.5,4.0],"track_index":[0.45,0.62],"windage_ratio":[3.2,2.2],"reach_in":[24.5,20.5]},"weights":{"resistance_lbf":2,"bow_wet_prob":1,"flood_angle":2,"secondary_ratio":1,"side_windage_ft2":1,"gm_in":1,"track_index":1.5,"windage_ratio":1,"reach_in":1}},"shallow-river":{"description":"Slow river, marsh or lake margin about 2 ft deep, 3.5 mph. Shallow water raises wave drag and draft matters.","water":"fresh","depth_m":0.6,"speed_mph":3.5,"wind_mph":0,"waves":null,"load":{"crew_posture":"seated"},"constraints":{"freeboard_mid_in":[6,null],"gm_in":[1.5,null],"flood_angle":[22,null]},"targets":{"resistance_lbf":[6,3.5],"draft_max_in":[5.5,3.8],"gm_in":[1.5,4.0],"flood_angle":[24,36],"track_index":[0.68,0.45]},"weights":{"resistance_lbf":2,"draft_max_in":2,"gm_in":1,"flood_angle":1,"track_index":2}},"moving-water":{"description":"Class I-II river with standing waves and eddy turns, paddlers kneeling, 3 mph through the water.","water":"fresh","depth_m":0.8,"speed_mph":3.0,"wind_mph":0,"waves":{"hs_m":0.35,"tp_s":1.6,"gamma":5},"load":{"crew_posture":"kneeling"},"constraints":{"freeboard_mid_in":[7,null],"gm_in":[2.0,null],"flood_angle":[28,null]},"targets":{"end_depth_ratio":[0.5,0.25],"bow_wet_prob":[0.35,0.05],"flood_angle":[28,42],"secondary_ratio":[0.6,0.95],"resistance_lbf":[14,6],"track_index":[0.55,0.3]},"weights":{"end_depth_ratio":1,"bow_wet_prob":2,"flood_angle":2,"secondary_ratio":2,"resistance_lbf":0.5,"track_index":3}},"kids-pack-boat":{"description":"A small pack boat for a young child on a calm pond or sheltered shore, sitting low on a pad with a short double paddle, about 2 mph.","water":"fresh","depth_m":null,"speed_mph":2.0,"wind_mph":0,"waves":null,"paddlers":1,"power_w_per_paddler":8,"load":{"crew_vcg_in":8.5},"constraints":{"freeboard_mid_in":[4,null],"gm_in":[3,null],"flood_angle":[25,null],"rm_max_ftlb":[10,null]},"targets":{"rm_max_ftlb":[10,24],"flood_angle":[26,40],"gm_in":[3,7],"gunwale_beam_in":[28,23],"freeboard_mid_in":[8,5.5],"speed_at_power_mph":[2.2,3.0],"side_windage_ft2":[5,3],"track_index":[0.5,0.65]},"weights":{"rm_max_ftlb":3,"flood_angle":2,"gm_in":1,"gunwale_beam_in":2,"freeboard_mid_in":1,"speed_at_power_mph":1.5,"side_windage_ft2":1,"track_index":1}}};
   var COND_NAMES = { 'calm-lake': 'Calm lake', 'fast-flatwater': 'Fast flatwater', 'big-lake-chop': 'Big-lake chop', 'boat-wakes': 'Boat wakes',
                      'coastal-swell': 'Coastal swell', 'shallow-river': 'Shallow river', 'moving-water': 'Moving water', 'kids-pack-boat': 'Kid\'s pack boat' };
   var METRICS = {
@@ -2445,14 +2496,16 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     speed_at_power_mph: ['Speed at the power budget', 'mph', 2], wetted_ft2: ['Wetted area', 'ft²', 1], cp: ['Prismatic coefficient', '', 3],
     heave_sig_in: ['Heave, significant', 'in', 1], pitch_sig_deg: ['Pitch, significant', DEG, 1], bow_wet_prob: ['Waves reaching the bow sheer', '%', 1],
     bow_freeboard_in: ['Bow freeboard', 'in', 1],
+    track_index: ['Tracking (0 spins, 1 holds a line)', '', 2], reach_in: ['Reach to the water at the seats', 'in', 1], windage_ratio: ['Side area in the wind per keel area', '', 2],
+    sinkage_in: ['Settles when moving', 'in', 2], skin_ft2: ['Hull skin area', 'ft²', 1],
     turn_index: ['Turn index', '', 3], end_depth_ratio: ['End immersion', '', 2], side_windage_ft2: ['Side windage', 'ft²', 1], gunwale_beam_in: ['Width at the gunwales', 'in', 1],
     draft_max_in: ['Draft, deepest', 'in', 2], freeboard_mid_in: ['Freeboard at midship', 'in', 1]
   };
   var GROUPS_AN = [
     ['Stability', ['gm_in', 'rm10_ftlb', 'rm_max_ftlb', 'flood_angle', 'secondary_ratio']],
-    ['Effort', ['resistance_lbf', 'wave_lbf', 'added_resistance_lbf', 'speed_at_power_mph', 'wetted_ft2', 'cp']],
+    ['Effort', ['resistance_lbf', 'wave_lbf', 'added_resistance_lbf', 'speed_at_power_mph', 'wetted_ft2', 'cp', 'sinkage_in']],
     ['In waves', ['heave_sig_in', 'pitch_sig_deg', 'bow_wet_prob', 'bow_freeboard_in']],
-    ['Handling and size', ['turn_index', 'end_depth_ratio', 'gunwale_beam_in', 'side_windage_ft2', 'draft_max_in', 'freeboard_mid_in']]
+    ['Handling and size', ['track_index', 'end_depth_ratio', 'reach_in', 'gunwale_beam_in', 'side_windage_ft2', 'windage_ratio', 'draft_max_in', 'freeboard_mid_in', 'skin_ft2']]
   ];
   // Sliders the optimizer may move, with search ranges kept inside sensible canoe territory.
   var SEARCH = [
@@ -2672,6 +2725,8 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     if (!vars.length) { $('an-prog-t').textContent = 'Pick at least one setting to change.'; return; }
     var base = params(), cond = CONDS[AN.cond], gens = parseInt($('an-gens').value, 10), D = vars.length, NP = Math.max(16, 4 * D);
     var start = vars.map(function (v) { return v[5] ? base['b_' + v[0]] : base[v[0]]; });
+    // The same laminate on a bigger hull weighs more: hull weight follows the skin area while shapes are tried.
+    var perFt2 = base.hullLb / E.skin(base);
     // length, beam and depth search around the current hull, so a short or small boat stays near its own size
     var bnd = vars.map(function (v, j) {
       var x = start[j], r = specs[v[5] ? 'b_' + v[0] : v[0]];
@@ -2686,6 +2741,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         var keys = v[5] ? ['b_' + v[0], 's_' + v[0]] : [v[0]];
         keys.forEach(function (k) { var r = specs[k]; p[k] = +(Math.round(clamp(vec[i], r[3], r[4]) / r[5]) * r[5]).toFixed(4); });
       });
+      p.hullPerFt2 = perFt2;
       return p;
     }
     var run = AN.run = { stop: false, gen: 0 }, X = [], fit = [], best = null;
@@ -2726,6 +2782,8 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       AN.run = null; $('an-start').textContent = 'Search again';
       if (!best) return;
       var p = apply(best.vec);
+      delete p.hullPerFt2;
+      p.hullLb = clamp(Math.round(perFt2 * E.skin(p)), specs.hullLb[3], specs.hullLb[4]);
       $('an-prog-t').textContent = (run.stop ? 'Stopped at generation ' + run.gen : 'Done after ' + run.gen + ' generations') + ' · best score ' + Math.round(best.score);
       pool.run(p, cond, true).then(function (r) {
         AN.found = p; AN.foundRes = r; drawResults();
@@ -2733,6 +2791,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
           var k = v[5] ? 'b_' + v[0] : v[0], a = base[k], b = p[k], r2 = specs[k];
           return Math.abs(a - b) < r2[5] / 2 ? null : v[1] + ' ' + readoutOf(k, a) + ' → ' + readoutOf(k, b);
         }).filter(Boolean);
+        if (ch.length && p.hullLb !== base.hullLb) ch.push('Hull weight ' + base.hullLb + ' → ' + p.hullLb + ' lb (same build, ' + (p.hullLb > base.hullLb ? 'more' : 'less') + ' skin)');
         $('an-found-t').textContent = ch.length ? ch.join(', ') + '.' : 'No change beat the current shape.';
         $('an-use').hidden = !ch.length; $('an-undo').hidden = true;
         $('an-found').hidden = false;
@@ -4033,14 +4092,15 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
 
   /* ---------- laminate: materials ---------- */
   // Typical published values for design estimates, not a supplier's data sheet. Fibers: density g/cm³, moduli Pa,
-  // design strain allowables for a cured ply (tension, compression) with knockdowns for fabrics, impact and wet use.
+  // design strain allowables for a cured ply (tension, compression) with knockdowns for fabrics, impact and wet use;
+  // tp is the through-thickness (punch) shear strength of a cured ply, Pa.
   var LAM_FIBERS = {
-    eglass:  { name: 'E-glass',   rho: 2.58, E1: 73e9,  E2: 73e9,  G: 30e9,  nu: 0.22, et: 0.018, ec: 0.012, vf: 1 },
-    sglass:  { name: 'S-glass',   rho: 2.46, E1: 87e9,  E2: 87e9,  G: 36e9,  nu: 0.22, et: 0.024, ec: 0.014, vf: 1 },
-    carbon:  { name: 'Carbon',    rho: 1.78, E1: 235e9, E2: 15e9,  G: 27e9,  nu: 0.20, et: 0.012, ec: 0.009, vf: 1 },
-    aramid:  { name: 'Kevlar',    rho: 1.44, E1: 112e9, E2: 5.4e9, G: 2.9e9, nu: 0.36, et: 0.016, ec: 0.0035, vf: 0.9 },
-    innegra: { name: 'Innegra',   rho: 0.84, E1: 15e9,  E2: 2e9,   G: 1e9,   nu: 0.40, et: 0.030, ec: 0.006, vf: 0.85 },
-    basalt:  { name: 'Basalt',    rho: 2.67, E1: 89e9,  E2: 89e9,  G: 36e9,  nu: 0.22, et: 0.020, ec: 0.013, vf: 1 }
+    eglass:  { name: 'E-glass',   rho: 2.58, E1: 73e9,  E2: 73e9,  G: 30e9,  nu: 0.22, et: 0.018, ec: 0.012, vf: 1, tp: 90e6 },
+    sglass:  { name: 'S-glass',   rho: 2.46, E1: 87e9,  E2: 87e9,  G: 36e9,  nu: 0.22, et: 0.024, ec: 0.014, vf: 1, tp: 110e6 },
+    carbon:  { name: 'Carbon',    rho: 1.78, E1: 235e9, E2: 15e9,  G: 27e9,  nu: 0.20, et: 0.012, ec: 0.009, vf: 1, tp: 80e6 },
+    aramid:  { name: 'Kevlar',    rho: 1.44, E1: 112e9, E2: 5.4e9, G: 2.9e9, nu: 0.36, et: 0.016, ec: 0.0035, vf: 0.9, tp: 100e6 },
+    innegra: { name: 'Innegra',   rho: 0.84, E1: 15e9,  E2: 2e9,   G: 1e9,   nu: 0.40, et: 0.030, ec: 0.006, vf: 0.85, tp: 50e6 },
+    basalt:  { name: 'Basalt',    rho: 2.67, E1: 89e9,  E2: 89e9,  G: 36e9,  nu: 0.22, et: 0.020, ec: 0.013, vf: 1, tp: 90e6 }
   };
   var LAM_RESINS = {
     epoxy:     { name: 'Epoxy',       E: 3.2e9, nu: 0.35, rho: 1.15 },
@@ -4080,17 +4140,17 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   ];
   var LAM_FAB = {}; LAM_FABRICS.forEach(function (f) { LAM_FAB[f[0]] = { id: f[0], name: f[1], gsm: f[2], form: f[3], fibers: f[4] }; });
   // foam and infusion cores: density kg/m³, moduli and shear strength Pa, resin taken up in infusion
-  // (kg/m² for the scored or perforated faces, plus kg/m² per mm of thickness)
+  // (kg/m² for the scored or perforated faces, plus kg/m² per mm of thickness), then crushing strength Pa
   var LAM_CORES = [
-    ['h45', 'PVC foam H45', 48, 50e6, 15e6, 0.56e6, 0.30, 0.02],
-    ['h60', 'PVC foam H60', 60, 70e6, 20e6, 0.76e6, 0.30, 0.02],
-    ['h80', 'PVC foam H80', 80, 95e6, 27e6, 1.15e6, 0.30, 0.02],
-    ['h100', 'PVC foam H100', 100, 135e6, 35e6, 1.6e6, 0.30, 0.02],
-    ['m80', 'SAN foam (Corecell) M80', 85, 81e6, 32e6, 1.2e6, 0.30, 0.02],
-    ['pet', 'PET foam 100', 100, 85e6, 20e6, 0.9e6, 0.30, 0.02],
-    ['soric', 'Soric XF infusion core', 50, 400e6, 30e6, 3e6, 0, 0.60]
+    ['h45', 'PVC foam H45', 48, 50e6, 15e6, 0.56e6, 0.30, 0.02, 0.6e6],
+    ['h60', 'PVC foam H60', 60, 70e6, 20e6, 0.76e6, 0.30, 0.02, 0.9e6],
+    ['h80', 'PVC foam H80', 80, 95e6, 27e6, 1.15e6, 0.30, 0.02, 1.4e6],
+    ['h100', 'PVC foam H100', 100, 135e6, 35e6, 1.6e6, 0.30, 0.02, 2.0e6],
+    ['m80', 'SAN foam (Corecell) M80', 85, 81e6, 32e6, 1.2e6, 0.30, 0.02, 1.0e6],
+    ['pet', 'PET foam 100', 100, 85e6, 20e6, 0.9e6, 0.30, 0.02, 1.5e6],
+    ['soric', 'Soric XF infusion core', 50, 400e6, 30e6, 3e6, 0, 0.60, 3e6]
   ];
-  var LAM_CORE = {}; LAM_CORES.forEach(function (c) { LAM_CORE[c[0]] = { id: c[0], name: c[1], rho: c[2], E: c[3], G: c[4], tau: c[5], up0: c[6], up1: c[7] }; });
+  var LAM_CORE = {}; LAM_CORES.forEach(function (c) { LAM_CORE[c[0]] = { id: c[0], name: c[1], rho: c[2], E: c[3], G: c[4], tau: c[5], up0: c[6], up1: c[7], sc: c[8] }; });
   var LAM_FORM_TXT = { plain: '0/90 woven', twill: '0/90 twill', biax: '±45 stitched', ud: 'unidirectional', triax: '0/±45', braid: 'braided sleeve' };
 
   /* ---------- laminate: plies and classical lamination theory ---------- */
@@ -4098,7 +4158,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   function lamPlies(layer, LM) {
     if (layer.core) {
       var c = LAM_CORE[layer.core], t = layer.t / 1000, up = c.up0 + c.up1 * layer.t;
-      return [{ core: c, t: t, E1: c.E, E2: c.E, G: c.G, nu: 0.3, ang: 0, kg: c.rho * t + up, resin: up, fiber: 0, tau: c.tau }];
+      return [{ core: c, t: t, E1: c.E, E2: c.E, G: c.G, nu: 0.3, ang: 0, kg: c.rho * t + up, resin: up, fiber: 0, tau: c.tau, sc: c.sc }];
     }
     var f = LAM_FAB[layer.m], R = LAM_RESINS[LM.resin], out = [], n = layer.n || 1;
     var dirs = f.form === 'ud' ? [[0, 1]] : f.form === 'biax' ? [[45, 0.5], [-45, 0.5]] : f.form === 'triax' ? [[0, 1 / 3], [45, 1 / 3], [-45, 1 / 3]]
@@ -4110,7 +4170,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         var F = LAM_FIBERS[fb[0]], vf = clamp(LM.vf * F.vf, 0.15, 0.7), vm = 1 - vf, gsm = f.gsm * d[1] * fb[1];
         var tf = gsm / (F.rho * 1e6), t = tf / vf, Gm = R.E / (2 * (1 + R.nu));
         function ht(Ef, Em, xi) { var eta = (Ef / Em - 1) / (Ef / Em + xi); return Em * (1 + xi * eta * vf) / (1 - eta * vf); }
-        out.push({ fiberId: fb[0], t: t, E1: knock * (vf * F.E1 + vm * R.E), E2: ht(F.E2, R.E, 2), G: ht(F.G, Gm, 1), nu: vf * F.nu + vm * R.nu,
+        out.push({ fiberId: fb[0], tp: F.tp, t: t, E1: knock * (vf * F.E1 + vm * R.E), E2: ht(F.E2, R.E, 2), G: ht(F.G, Gm, 1), nu: vf * F.nu + vm * R.nu,
                    ang: d[0] + rot, et: F.et, ec: F.ec, kg: gsm / 1000 + (t - tf) * R.rho * 1000, fiber: gsm / 1000, resin: (t - tf) * R.rho * 1000 });
       });
     });
@@ -4161,8 +4221,11 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     // bending stiffness with membrane coupling taken out (unsymmetric stacks), and membrane stiffness
     var Ds = inv ? lamInv([inv[3].slice(3), inv[4].slice(3), inv[5].slice(3)]) : D;
     var faces = 0; if (coreT > 0) { var lo = Infinity, hi = -Infinity; plies.forEach(function (p) { if (p.core) { lo = Math.min(lo, p.z0); hi = Math.max(hi, p.z1); } }); faces = hi - lo; }
+    // In-plane stiffness as the laminate works in a hull: part of a curved shell or a closed sleeve, so it cannot curl
+    // the way a loose strip of an unbalanced stack would. That is the A matrix on its own.
+    var Ai = h > 0 ? lamInv(A) : null;
     return { plies: plies, h: h, kg: kg, fiber: fiber, resin: resin, A: A, B: B, D: D, Ds: Ds, inv: inv, coreT: coreT, coreH: faces,
-             Ex: inv ? 1 / (inv[0][0] * h) : 0, Ey: inv ? 1 / (inv[1][1] * h) : 0, EAx: inv ? 1 / inv[0][0] : 0 };
+             Ex: Ai ? 1 / (Ai[0][0] * h) : 0, Ey: Ai ? 1 / (Ai[1][1] * h) : 0, EAx: Ai ? 1 / Ai[0][0] : 0 };
   }
   // ply safety factor for midplane strains e0 and curvatures k (fiber direction and in-plane shear)
   function lamSF(S, e0, k) {
@@ -4201,7 +4264,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     }
     return (LAM_NAV[key] = { w: w, Mx: Mx, My: My });
   }
-  function lamPanel(S, a, b, q, P, c, d) {
+  function lamPanel(S, a, b, q, P, c, d, skinsOnly) {
     c = Math.min(c || 0, a); d = Math.min(d || 0, b);
     var nv = lamNavier(S, a, b, P ? c : 0, d), ld = P || q, w = nv.w * ld, Mx = nv.Mx * ld, My = nv.My * ld;
     // the membrane works across the short span: round the girth, or along the hull between close ribs
@@ -4213,13 +4276,35 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     for (var i = 0; i < 6; i++) for (var j = 0; j < 6; j++) e[i] += inv[i][j] * Mv[j];
     var st = lamSF(S, [e[0] + (ac ? em : 0), e[1] + (ac ? 0 : em), e[2]], [e[3], e[4], e[5]]);
     // shear in a sandwich core
-    if (S.coreT > 0) {
+    if (S.coreT > 0 && !skinsOnly) {
       var V = P ? P / (2 * (c + d)) : q * b / 2, tau = V / Math.max(S.coreH, 1e-6), core = null;
       S.plies.forEach(function (p) { if (p.core) core = p; });
       var fc = core.tau / Math.max(tau, 1e-9);
       if (fc < st.sf) st = { sf: fc, worst: { fiber: 'core', mode: 'core shear' } };
     }
     return { w: wn, wLin: wl, sf: st.sf, worst: st.worst };
+  }
+  // A rock under the hull. A floating boat cannot press on a rock harder than the weight it brings down on it, with a
+  // factor for the bump, so the check is a force F (N) on a contact patch dia (m) across. Three ways to fail are checked:
+  // fibers breaking as the panel bends and stretches (or a core shearing), the rock punching through the outside skin,
+  // and (on a cored panel) the core crushing under the skin, which leaves a dent. Returns the force that breaks the
+  // skin as a multiple of F, and the force that dents the core. Where the hull curves too tightly for a panel as wide as the rock, the shell carries most of the
+  // load round the curve, as it does for the foot check.
+  function lamRock(S, a, b, F, dia) {
+    var sq = 0.886 * dia, c = Math.min(sq, a), d = Math.min(sq, b), share = Math.min(1, a / sq) * Math.min(1, b / sq), skinT = 0, tp = 0, core = null;
+    S.plies.some(function (p) { if (p.core) { core = p; return true; } skinT += p.t; tp += p.t * p.tp; return false; });   // outside skin, mold side first
+    if (!core) { skinT = 0; tp = 0; S.plies.forEach(function (p) { skinT += p.t; tp += p.t * p.tp; }); }
+    tp /= Math.max(skinT, 1e-9);
+    var Ppunch = tp * Math.PI * dia * skinT;
+    // the core gives by crushing under the skin or by shearing round the edge of the contact, whichever comes first
+    var Pcrush = core ? Math.min(core.sc * Math.pow(sq + 2 * skinT, 2), core.tau * S.coreH * 2 * (c + d) / share) : Infinity;
+    // a crushed core is a dent, not a hole, so it is reported beside the force that breaks the skin
+    var top = Ppunch, lo = 0, hi = top * share, rh = lamPanel(S, a, b, 0, hi, c, d, true), mode = 'punch', worst = null;
+    if (rh.sf < 1) {                        // a ply gives first: find the force where it does
+      for (var it = 0; it < 22; it++) { var m = (lo + hi) / 2, rm = lamPanel(S, a, b, 0, m, c, d, true); if (rm.sf < 1) { hi = m; rh = rm; } else lo = m; }
+      mode = 'plies'; worst = rh.worst; top = hi / share;
+    }
+    return { margin: F > 0 ? top / F : Infinity, force: top, mode: mode, worst: worst, w: rh.w, dent: F > 0 ? Pcrush / F : Infinity, dentForce: Pcrush };
   }
 
   /* ---------- laminate: the hull ---------- */
@@ -4409,12 +4494,28 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     return { a: l >= 0 && r < nx ? (r - l - 1) * g.dx : Infinity, b: d >= 0 && u < g.ns ? (u - d - 1) * g.ds : Infinity };
   }
   function lamLabel(S) { return (S.zones.length ? 'Base + ' + S.zones.map(function (Z) { return Z.name; }).join(' + ') : 'Base skin') + (S.noCore ? ', no core here' : ''); }
-  // panel checks for each cell: flex under a person (floor) or a push (sides), strength under design loads
+  // where the ribs are, in inches from the stern tip: placed one by one (ribs.at, shares of the length), or evenly spaced
+  function lamRibXs(LM, L) {
+    var r = LM.ribs, out = [];
+    if (!r.on) return out;
+    if (Array.isArray(r.at)) return r.at.map(function (f) { return f * L; }).sort(function (a, b) { return a - b; });
+    for (var x = r.x0 / 100 * L; x <= r.x1 / 100 * L + 1e-6; x += Math.max(r.space, 1)) out.push(x);
+    return out;
+  }
+  function lamRibsEven(LM, L) { var keep = LM.ribs.at; delete LM.ribs.at; var xs = lamRibXs(Object.assign({}, LM, { ribs: Object.assign({}, LM.ribs, { on: true }) }), L); if (keep) LM.ribs.at = keep; return xs.map(function (x) { return +(x / L).toFixed(4); }); }
+  // panel checks for each cell: flex under a person (floor) or a push (sides), strength under design loads,
+  // the bottom pumping in and out under the water's own pressure, and a rock under the bottom
   function lamAssess(H, LM, cellsIn) {
-    var Ld = LM.loads, ribs = LM.ribs.on ? LM.ribs : null, str = LM.stringers.on ? LM.stringers : null;
+    var Ld = LM.loads, ribs = LM.ribs.on ? LM.ribs : null, str = LM.stringers.on ? LM.stringers : null, ribX = lamRibXs(LM, H.L);
+    var reach = ribs ? (ribs.reach >= 99 ? Infinity : ribs.reach) : 0, pM = H.M.p;
+    var rockF = (Ld.rockShare / 100) * (pM.hullLb + pM.payLb) * LAM_LBF * Ld.rockG, rockD = Ld.rockD * LAM_IN;
     (cellsIn || H.cells).forEach(function (c) {
       var b = c.b * LAM_IN, aIn = Infinity;
-      if (ribs && c.st.xf >= ribs.x0 / 100 && c.st.xf <= ribs.x1 / 100) aIn = ribs.space;
+      if (ribX.length > 1 && c.s <= reach) {
+        var xr = c.x - H.x0h, lo = -Infinity, hi = Infinity;
+        ribX.forEach(function (x) { if (x <= xr && x > lo) lo = x; if (x > xr && x < hi) hi = x; });
+        if (isFinite(lo) && isFinite(hi)) aIn = Math.max(hi - lo, 1);
+      }
       if (str && c.floor && c.st.xf >= str.x0 / 100 && c.st.xf <= str.x1 / 100) b = Math.min(b, c.b * LAM_IN / (str.n + 1));
       if (c.gapA < aIn) aIn = Math.max(c.gapA, 1);
       if (c.gapB * LAM_IN < b) b = Math.max(c.gapB, 1) * LAM_IN;
@@ -4428,12 +4529,45 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       c.a = a / LAM_IN; c.bEff = b / LAM_IN;
       c.flex = rp.w / b; c.wFoot = rp.w / LAM_IN;
       c.sf = Math.min(rpd.sf, rw.sf); c.worst = rpd.sf < rw.sf ? rpd.worst : rw.worst; c.sfCase = rpd.sf < rw.sf ? (c.floor ? 'foot' : 'push') : 'water';
+      c.sfLoad = rpd.sf; c.sfWater = rw.sf;
+      if (c.wet) {
+        // the still water's own pressure at this depth: how far it dishes the bottom in as the boat is paddled
+        var head = 999 * 9.81 * Math.max(H.draftZ - c.z, 0) * LAM_IN;
+        c.pant = head > 0 ? lamPanel(S, a, b, head, 0).w / b : 0;
+        c.rock = lamRock(S, a, b, rockF, rockD);
+      } else { c.pant = 0; c.rock = null; }
     });
   }
-  function lamGrade(c, LM) {
-    var fl = c.flex <= LM.loads.flexOk / 100 ? 0 : c.flex <= LM.loads.flexMax / 100 ? 1 : 2;
-    var sg = c.sf >= LM.loads.sf ? 0 : c.sf >= Math.min(2, LM.loads.sf) ? 1 : 2;
-    return Math.max(fl, sg);
+  var LAM_ROCK_OK = 1.5;                   // a hit this many times the design hit is comfortable; under 1 it breaks
+  function lamGradeOf(c, LM, k) {          // 0 good, 1 fair, 2 needs work, for one check or all of them
+    var L = LM.loads, f = function (v) { return v <= L.flexOk / 100 ? 0 : v <= L.flexMax / 100 ? 1 : 2; };
+    if (k === 'flex') return f(c.flex);
+    if (k === 'pant') return f(c.pant || 0);
+    if (k === 'sf') return c.sf >= L.sf ? 0 : c.sf >= Math.min(2, L.sf) ? 1 : 2;
+    if (k === 'rock') return !c.rock ? 0 : c.rock.margin < 1 ? 2 : c.rock.margin < LAM_ROCK_OK || c.rock.dent < 1 ? 1 : 0;
+    return Math.max(lamGradeOf(c, LM, 'flex'), lamGradeOf(c, LM, 'pant'), lamGradeOf(c, LM, 'sf'), lamGradeOf(c, LM, 'rock'));
+  }
+  function lamGrade(c, LM) { return lamGradeOf(c, LM); }
+  // A sideways pull on the gunwale half way between two thwarts (hauling yourself in from the water, a hard pry):
+  // the rail bends sideways as a beam. The side of the hull is thin in that direction, so only the rail counts.
+  function lamGun(H, LM) {
+    var Ld = LM.loads, st = H.stations.reduce(function (m, s) { return s.q.hb > m.q.hb ? s : m; }, H.stations[0]), top = st.cells[st.cells.length - 1];
+    var G = LM.gunwale, on = G.on, wall = on ? lamStack(G.layers, LM) : top.S, core = on ? LAM_CORE[G.core] : null;
+    var w = (on ? G.w : 0.75) * LAM_IN, h = (on ? G.h : 0) * LAM_IN;
+    // sleeve walls: two the width of the lip, two the height of the leg at half the lip width from the middle
+    var EI = on ? wall.EAx * (2 * w * w * w / 12 + 2 * h * w * w / 4) + core.E * (G.w * G.t2 + G.h * G.t) * LAM_IN * LAM_IN * w * w / 12 : wall.EAx * w * w * w / 12;
+    var P = Ld.gunLoad * LAM_LBF, Ls = Ld.gunSpan * LAM_IN, e = P * Ls / 4 * (w / 2) / EI;
+    var sf = Math.min(lamSF(wall, [e, 0, 0], [0, 0, 0]).sf, lamSF(wall, [-e, 0, 0], [0, 0, 0]).sf);
+    return { sf: sf, defl: P * Ls * Ls * Ls / (48 * EI) / LAM_IN, EI: EI, has: on };
+  }
+  // what the outside of the hull is made of, for scrapes: aramid and Innegra fuzz when abraded, glass and carbon sand clean
+  function lamOuter(LM) {
+    var Ly = LM.base.filter(function (x) { return !x.core; })[0];
+    if (!Ly) return { grade: 2, text: 'There is no skin layer in the base layup.' };
+    var f = LAM_FAB[Ly.m], soft = f.fibers.filter(function (x) { return x[0] === 'aramid' || x[0] === 'innegra'; }).reduce(function (m, x) { return m + x[1]; }, 0);
+    if (soft >= 0.5) return { grade: 1, text: 'The outside layer is ' + f.name + '. Kevlar and Innegra fuzz up when dragged over sand and rock and cannot be sanded smooth. A light glass layer outside takes the scrapes and sands clean.' };
+    if (f.gsm * (Ly.n || 1) < 150) return { grade: 1, text: 'The outside layer is ' + f.name + ', which is thin for scrapes. About 6 oz of glass outside gives something to wear through before the structure.' };
+    return { grade: 0, text: 'The outside layer is ' + f.name + ', which wears and sands well.' };
   }
   // reinforcements: gunwale (an L of foam in a braided sleeve), ribs, stringers, all per unit length
   function lamSection(R, LM) {
@@ -4515,10 +4649,9 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       secBuy(LM.gunwale.layers, g.per, 2 * sheerLen);
     }
     if (LM.ribs.on) {
-      var r = lamSection(Object.assign({ kind: 'rib' }, LM.ribs), LM), rl = 0, nr = 0;
-      H.stations.forEach(function (st) { if (st.xf >= LM.ribs.x0 / 100 && st.xf <= LM.ribs.x1 / 100) rl += 2 * Math.min(st.G, LM.ribs.reach >= 99 ? st.G : LM.ribs.reach) * (H.L / H.NX) / LM.ribs.space; });
-      nr = Math.round((LM.ribs.x1 - LM.ribs.x0) / 100 * H.L / LM.ribs.space) + 1;
-      out.rows.push({ name: 'Ribs, ' + nr + ' at ' + LM.ribs.space + ' in', kg: r.kg * rl * LAM_IN, len: rl * LAM_IN });
+      var r = lamSection(Object.assign({ kind: 'rib' }, LM.ribs), LM), rl = 0, rxs = lamRibXs(LM, H.L), nr = rxs.length;
+      rxs.forEach(function (x) { var st = H.stations[clamp(Math.floor(x / H.L * H.NX), 0, H.NX - 1)]; rl += 2 * Math.min(st.G, LM.ribs.reach >= 99 ? st.G : LM.ribs.reach); });
+      out.rows.push({ name: 'Ribs, ' + nr + (Array.isArray(LM.ribs.at) ? ' placed' : ' at ' + LM.ribs.space + ' in'), kg: r.kg * rl * LAM_IN, len: rl * LAM_IN });
       out.fiber += r.wall.fiber * r.per * rl * LAM_IN; out.resin += r.wall.resin * r.per * rl * LAM_IN;
       secBuy(LM.ribs.layers, r.per, rl * LAM_IN);
     }
@@ -4536,12 +4669,20 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     var H = lamPlan(p, LM, h);
     lamAssess(H, LM);
     var mass = lamMass(H, LM), gird = lamGirder(H, LM, p, h, mass.kg);
-    var worstFlex = null, worstSF = null;
+    var worstFlex = null, worstSF = null, W = { floor: null, side: null, load: null, water: null, pant: null, rock: null }, bad = 0;
     H.cells.forEach(function (c) {
       if (!worstFlex || c.flex > worstFlex.flex) worstFlex = c;
       if (!worstSF || c.sf < worstSF.sf) worstSF = c;
+      var k = c.floor ? 'floor' : 'side';
+      if (!W[k] || c.flex > W[k].flex) W[k] = c;
+      if (!W.load || c.sfLoad < W.load.sfLoad) W.load = c;
+      if (!W.water || c.sfWater < W.water.sfWater) W.water = c;
+      if (c.wet && (!W.pant || c.pant > W.pant.pant)) W.pant = c;
+      if (c.rock && (!W.rock || c.rock.margin < W.rock.rock.margin)) W.rock = c;
+      if (c.rock && isFinite(c.rock.dent) && (!W.dent || c.rock.dent < W.dent.rock.dent)) W.dent = c;
+      if (lamGrade(c, LM) === 2) bad++;
     });
-    return { H: H, mass: mass, girder: gird, worstFlex: worstFlex, worstSF: worstSF, recs: lamRecs(H, LM) };
+    return { H: H, mass: mass, girder: gird, worstFlex: worstFlex, worstSF: worstSF, worst: W, bad: bad, gun: lamGun(H, LM), outer: lamOuter(LM), recs: lamRecs(H, LM) };
   }
   // ways to fix panels that flex too much or are too weak, each with its weight
   function lamRecs(H, LM) {
@@ -4583,7 +4724,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         if (found) recs.push(found);
         found = null;
         [24, 18, 15, 12, 10, 8, 6, 5, 4].some(function (sp) {
-          var rb = Object.assign({}, LM.ribs, { on: true, space: sp, x0: xa, x1: xb }), r = trial(null, rb);
+          var rb = Object.assign({}, LM.ribs, { on: true, space: sp, x0: xa, x1: xb }); delete rb.at; var r = trial(null, rb);
           if (r.ok) found = { kind: 'ribs', text: 'Foam ribs every ' + sp + ' in from ' + xa + ' to ' + xb + '% of the length', dkg: r.kg - m0, ribs: rb };
           return r.ok;
         });
@@ -4610,11 +4751,12 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       { id: 'z3', name: 'Bow stem', on: true, x0: 92, x1: 100, g0: 0, g1: 99, layers: [{ m: 'sg6', a: 0, n: 1 }] },
       { id: 'z4', name: 'Stern stem', on: true, x0: 0, x1: 8, g0: 0, g1: 99, layers: [{ m: 'sg6', a: 0, n: 1 }] }
     ],
-    gunwale: { on: true, core: 'h80', h: 1.25, t: 0.5, w: 1, t2: 0.375, layers: [{ m: 'bck', a: 45, n: 2 }] },
+    gunwale: { on: true, core: 'h80', h: 1.25, t: 0.5, w: 1, t2: 0.375, layers: [{ m: 'cfud', a: 0, n: 2 }, { m: 'bck', a: 45, n: 2 }] },
     ribs: { on: false, core: 'h80', w: 0.75, h: 0.5, space: 12, x0: 25, x1: 75, reach: 99, layers: [{ m: 'k5', a: 45, n: 1 }] },
     stringers: { on: false, n: 2, core: 'h80', w: 0.75, h: 0.5, x0: 20, x1: 80, layers: [{ m: 'k5', a: 45, n: 1 }] },
     fittings: 9,
-    loads: { foot: 200, footL: 10, footW: 4, push: 25, pushW: 4, pBottom: 1, pSide: 0.5, dyn: 2, dynG: 1.5, flexOk: 1, flexMax: 2, sf: 3 }
+    loads: { foot: 200, footL: 10, footW: 4, push: 25, pushW: 4, pBottom: 1, pSide: 0.5, dyn: 2, dynG: 1.5, flexOk: 1, flexMax: 2, sf: 3,
+             rockShare: 50, rockG: 2, rockD: 1.5, gunLoad: 75, gunSpan: 36 }
   };
   /* ---------- laminate: panel ---------- */
   var LM = JSON.parse(JSON.stringify(LAM_DEF));
@@ -4735,7 +4877,9 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     h += '</section>';
     var r = LM.ribs;
     h += '<section class="lm-sec"><h3 class="an-k">Ribs</h3><div class="md-choice"><div class="md-lab"><span>Foam ribs across the hull</span></div>' + chipsHTML('ribs.on', [[true, 'On'], [false, 'Off']]) + '</div>';
-    if (r.on) h += stepHTML('ribs.space', 'Spacing', 'in', 3, 36, 1) + stepHTML('ribs.x0', 'From', '%', 0, 100, 5) + stepHTML('ribs.x1', 'to', '%', 0, 100, 5) + stepHTML('ribs.reach', 'Reach up the girth', 'in', 4, 99, 1) +
+    if (r.on) h += '<p class="hint lm-p">' + (Array.isArray(r.at) ? r.at.length + ' ribs, placed one by one. Move, add or remove them with the Rib tool on the drawing above, or set them out evenly again here.' : 'Evenly spaced. Use the Rib tool on the drawing above to move, add or remove single ribs.') + '</p>' +
+      stepHTML('ribs.space', 'Spacing', 'in', 3, 36, 1) + stepHTML('ribs.x0', 'From', '%', 0, 100, 5) + stepHTML('ribs.x1', 'to', '%', 0, 100, 5) +
+      (Array.isArray(r.at) ? '<div class="lm-add"><button type="button" class="lm-link" data-act="ribseven">Set the ribs out evenly at this spacing</button></div>' : '') + stepHTML('ribs.reach', 'Reach up the girth', 'in', 4, 99, 1) +
       '<div class="md-row"><div class="md-lab"><span>Foam core</span></div><select data-p="ribs.core" aria-label="Rib core">' + coreOptions(r.core) + '</select></div>' +
       stepHTML('ribs.w', 'Rib width', 'in', 0.25, 3, 0.125) + stepHTML('ribs.h', 'Rib height', 'in', 0.25, 2, 0.125) + '<p class="hint lm-p">Cap layers</p>' + layersHTML('ribs.layers');
     h += '</section>';
@@ -4752,6 +4896,9 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       stepHTML('loads.pBottom', 'Design water pressure, bottom', 'psi', 0.25, 5, 0.25, 'Waves and slamming below the waterline.') + stepHTML('loads.pSide', 'Design water pressure, sides', 'psi', 0.1, 3, 0.1) +
       stepHTML('loads.dyn', 'Load factor for strength', '', 1, 4, 0.25, 'Multiplies the foot and hand loads for the strength check (stepping in hard, dropping a knee).') +
       stepHTML('loads.dynG', 'Load factor, whole-hull bending', '', 1, 4, 0.25) +
+      stepHTML('loads.rockShare', 'Rock: share of the loaded boat on it', '%', 10, 100, 5, 'How much of the boat, people and gear comes down on one rock under the bottom.') +
+      stepHTML('loads.rockG', 'Rock: factor for the bump', '', 1, 5, 0.25) + stepHTML('loads.rockD', 'Rock: size of the contact', 'in', 0.5, 4, 0.25, 'Smaller is sharper. 1.5 in is a rounded river rock.') +
+      stepHTML('loads.gunLoad', 'Sideways pull on the gunwale', 'lb', 20, 250, 5) + stepHTML('loads.gunSpan', 'Longest gap between thwarts or seats', 'in', 12, 96, 2) +
       stepHTML('loads.flexOk', 'Flex that feels solid', '%', 0.25, 3, 0.25, 'Panel deflection as a share of its span, under the static foot or hand load.') + stepHTML('loads.flexMax', 'Most flex before it oil-cans', '%', 0.5, 6, 0.25) +
       stepHTML('loads.sf', 'Target safety factor', '', 1.5, 6, 0.5) + '</section>';
     h += '<p class="lm-reset"><button type="button" class="lm-link" data-act="reset">Start again from the sample layup</button></p>';
@@ -4781,6 +4928,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         lmChanged(true); return;
       }
       var act = b.dataset.act, p = b.dataset.p; if (!act) return;
+      if (act === 'ribseven') { delete LM.ribs.at; lmChanged(true); return; }
       if (act === 'place') { LC.sel = p; lcRender(); $('lc').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
       if (act === 'fit') { var Zf = lmGet(p); Zf.fit = b.dataset.v === 'core' ? (typeof Zf.fit === 'number' ? Zf.fit : 2) : null; lmChanged(true); return; }
       if (act === 'addzone') { LM.zones.push(lmZoneFrom($('lm-zt').value)); lmChanged(true); return; }
@@ -4823,27 +4971,25 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   function lmShow(R) {
     var m = R.mass, lb = m.kg * LB, wf = R.worstFlex, ws = R.worstSF, g = R.girder, L = LM.loads;
     function grade(v, ok, bad, inv) { return inv ? (v <= ok ? 'ok' : v <= bad ? 'warn' : 'bad') : (v >= ok ? 'ok' : v >= bad ? 'warn' : 'bad'); }
+    var tests = lmTests(R), pass = tests.filter(function (t) { return t[0] === 'ok'; }).length, fails = tests.filter(function (t) { return t[0] === 'bad'; }).length;
+    var badPct = 100 * R.bad / R.H.cells.length;
     $('lm-read').innerHTML = [
       ['Hull weight, estimated', lb.toFixed(1) + ' lb (' + m.kg.toFixed(1) + ' kg)', ''],
       ['Hull weight in the design', state.hullLb + ' lb', ''],
       ['Shell area', (m.area * FT2).toFixed(1) + ' ft²', ''],
-      ['Most flex', (wf.flex * 100).toFixed(1) + '% of the span', grade(wf.flex * 100, L.flexOk, L.flexMax, true)],
-      ['Lowest panel safety factor', ws.sf.toFixed(1), grade(ws.sf, L.sf, Math.min(2, L.sf))],
-      ['Whole-hull bending safety factor', g.sf.toFixed(1), grade(g.sf, L.sf, Math.min(2, L.sf))]
+      ['Tests passed', pass + ' of ' + tests.length, fails ? 'bad' : pass < tests.length ? 'warn' : 'ok'],
+      ['Shell that needs work', badPct < 0.05 ? 'none' : badPct.toFixed(badPct < 10 ? 1 : 0) + '%', badPct < 0.05 ? 'ok' : 'bad'],
+      ['Rock hit before it holes', R.worst.rock ? (R.worst.rock.rock.force / LAM_LBF).toFixed(0) + ' lb' : '–', R.worst.rock ? grade(R.worst.rock.rock.margin, LAM_ROCK_OK, 1) : '']
     ].map(function (r) { return '<div' + (r[2] ? ' class="lm-' + r[2] + '"' : '') + '><span>' + r[0] + '</span><b>' + r[1] + '</b></div>'; }).join('');
     $('lm-map').innerHTML = lmMap(R);
     document.querySelectorAll('#lm-metric button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === LV.metric)); });
-    // recommendations
-    var recs = [];
-    recs.push([grade(wf.flex * 100, L.flexOk, L.flexMax, true), 'Most flex is ' + (wf.flex * 100).toFixed(1) + '% of the panel span, ' + lmWhere(wf) + ': about ' + wf.wFoot.toFixed(2) + ' in under ' + (wf.floor ? 'a ' + L.foot + ' lb foot' : 'a ' + L.push + ' lb hand push') + ' across a ' + wf.bEff.toFixed(1) + ' in panel.']);
-    recs.push([grade(ws.sf, L.sf, Math.min(2, L.sf)), 'Lowest panel safety factor is ' + ws.sf.toFixed(1) + ', ' + lmWhere(ws) + ', ' + (ws.worst ? (ws.worst.fiber === 'core' ? 'core shear' : LAM_FIBERS[ws.worst.fiber].name + ' in ' + ws.worst.mode) : '') + ' under ' + (ws.sfCase === 'water' ? 'design water pressure' : ws.sfCase === 'foot' ? 'a foot load ×' + L.dyn : 'a hand push ×' + L.dyn) + '.']);
-    recs.push([grade(g.sf, L.sf, Math.min(2, L.sf)), 'Whole-hull bending, loaded and spanning two wave crests (or balanced on one): safety factor ' + g.sf.toFixed(1) + ' at the ' + g.where + '. It sags about ' + g.defl.toFixed(2) + ' in when held only at the ends.']);
-    var h = recs.map(function (r) { return '<li class="' + r[0] + '">' + r[1] + '</li>'; }).join('');
+    // the tests, then ways to fix what fails
+    var h = tests.map(function (t) { return '<li class="' + t[0] + '"><b>' + t[1] + '.</b> ' + t[2] + '</li>'; }).join('');
     if (R.recs.length) {
       h += '<li class="lm-fixes"><b>Ways to stiffen the ' + (R.recs.some(function (r) { return r.group === 'floor'; }) ? 'floor' : 'sides') + ':</b><ul>' + R.recs.map(function (r, i) {
         return '<li>' + r.text + (r.dkg ? ', adds ' + (r.dkg * LB).toFixed(1) + ' lb' : '') + '. ' + (r.zone || r.ribs ? '<button type="button" class="lm-link" data-rec="' + i + '">Add it</button>' : '') + '</li>';
       }).join('') + '</ul></li>';
-    } else h += '<li class="ok">Every panel is within the flex and strength limits, so no stiffeners or core are needed.</li>';
+    } else if (!R.bad) h += '<li class="ok">Every panel passes, so no more stiffeners or core are needed.</li>';
     $('lm-recs').innerHTML = h;
     // weights
     var tot = m.rows.reduce(function (s, r) { return s + r.kg; }, 0);
@@ -4877,9 +5023,31 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     $('lm-buy').innerHTML = '<table class="ofs"><thead><tr><th>Material</th><th>Amount</th><th></th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('') +
       '</tbody></table><p class="hint lm-p">Cloth includes 15% for overlaps and trim, sleeves and cores 10%.</p>';
     $('lm-save').hidden = !dl;
-    lcRender();
+    lcNote(R); lcRender();
   }
-  var LAM_METRICS = { grade: 'Overall', flex: 'Flex', sf: 'Strength', thick: 'Thickness', weight: 'Weight' };
+  var LAM_METRICS = { grade: 'Overall', flex: 'Flex', sf: 'Strength', rock: 'Rock', thick: 'Thickness', weight: 'Weight' };
+  // Each test is one thing that happens to a canoe, in words: [ok | warn | bad, name, what the numbers say].
+  function lmTests(R) {
+    var L = LM.loads, W = R.worst, g = R.girder, T = [], cls = ['ok', 'warn', 'bad'], p = R.H.M.p;
+    var sfG = function (v) { return v >= L.sf ? 'ok' : v >= Math.min(2, L.sf) ? 'warn' : 'bad'; };
+    var why = function (w) { return w ? (w.fiber === 'core' ? 'the foam core shears' : LAM_FIBERS[w.fiber].name + ' fails in ' + w.mode) : ''; };
+    if (W.floor) T.push([cls[lamGradeOf(W.floor, LM, 'flex')], 'Stepping in', 'A ' + L.foot + ' lb foot pushes the floor in ' + W.floor.wFoot.toFixed(2) + ' in at worst, ' + (W.floor.flex * 100).toFixed(1) + '% of a ' + W.floor.bEff.toFixed(1) + ' in panel, ' + lmWhere(W.floor) + '. Up to ' + L.flexOk + '% feels solid; past ' + L.flexMax + '% it oil-cans.']);
+    if (W.side) T.push([cls[lamGradeOf(W.side, LM, 'flex')], 'Pushing on the side', 'A ' + L.push + ' lb hand push moves the side ' + W.side.wFoot.toFixed(2) + ' in at worst (' + (W.side.flex * 100).toFixed(1) + '% of the panel), ' + lmWhere(W.side) + '.']);
+    if (W.load) T.push([sfG(W.load.sfLoad), 'Stepping in hard', 'With the foot and hand loads ×' + L.dyn + ' (a jump in, a dropped knee) the lowest safety factor is ' + W.load.sfLoad.toFixed(1) + ', ' + lmWhere(W.load) + (W.load.sfCase !== 'water' && W.load.worst ? ', where ' + why(W.load.worst) + ' first' : '') + '. The target is ' + L.sf + '.']);
+    if (W.water) T.push([sfG(W.water.sfWater), 'Waves slapping the hull', 'Under ' + L.pBottom + ' psi on the bottom and ' + L.pSide + ' psi on the sides the lowest safety factor is ' + W.water.sfWater.toFixed(1) + ', ' + lmWhere(W.water) + '.']);
+    if (W.pant) T.push([cls[lamGradeOf(W.pant, LM, 'pant')], 'Bottom pumping while paddling', 'The still water alone dishes the bottom in ' + (W.pant.pant * W.pant.bEff).toFixed(2) + ' in at worst (' + (W.pant.pant * 100).toFixed(1) + '% of the panel), ' + lmWhere(W.pant) + '. A bottom that moves more than ' + L.flexMax + '% pumps with every stroke and wastes effort.']);
+    if (W.rock) {
+      var r = W.rock.rock, need = (L.rockShare / 100) * (p.hullLb + p.payLb) * L.rockG;
+      var how = r.mode === 'punch' ? 'the rock punches through the skin' : why(r.worst), dn = W.dent ? W.dent.rock : null;
+      T.push([r.margin < 1 ? 'bad' : r.margin < LAM_ROCK_OK || (dn && dn.dent < 1) ? 'warn' : 'ok', 'Landing on a rock', 'The design hit is ' + need.toFixed(0) + ' lb on a rock ' + L.rockD + ' in across (' + L.rockShare + '% of the loaded boat, ×' + L.rockG + ' for the bump). The weakest spot under the waterline, ' + lmWhere(W.rock) + ', takes ' + (r.force / LAM_LBF).toFixed(0) + ' lb before ' + how + ': ' + r.margin.toFixed(1) + ' times the design hit. ' + LAM_ROCK_OK + ' times or more is comfortable.' +
+        (dn ? ' Over the foam core the skin holds, but the foam under it gives at ' + (dn.dentForce / LAM_LBF).toFixed(0) + ' lb' + (dn.dent < 1 ? ', so the design hit leaves a dent there. A denser foam (H100) or a thicker outside skin over the core resists it.' : '.') : '')]);
+    }
+    T.push([sfG(R.gun.sf), 'Pulling on the gunwale', 'A ' + L.gunLoad + ' lb sideways pull half way along a ' + L.gunSpan + ' in gap between thwarts bends the ' + (R.gun.has ? 'gunwale' : 'bare sheer edge') + ' ' + R.gun.defl.toFixed(2) + ' in, safety factor ' + R.gun.sf.toFixed(1) + '.' +
+      (R.gun.sf < L.sf ? ' Fibers that run along the gunwale do the work here: add unidirectional carbon or glass under the sleeve' + (R.gun.has ? '' : ', or switch the gunwale on') + ', or put the thwarts closer.' : '')]);
+    T.push([sfG(g.sf), 'Loaded and bridged between two waves', 'Carried on two crests (or balanced on one) with its full load ×' + L.dynG + ', the whole hull has a safety factor of ' + g.sf.toFixed(1) + ' at the ' + g.where + ', and sags about ' + g.defl.toFixed(2) + ' in.']);
+    T.push([cls[R.outer.grade], 'Scrapes', R.outer.text]);
+    return T;
+  }
   function lmMap(R) {
     var H = R.H, Gm = 0; H.stations.forEach(function (s) { Gm = Math.max(Gm, s.G); });
     var W = 760, sx = (W - 60) / H.L, sy = Math.min(9, 300 / Gm), Hh = Gm * sy + 46, X0 = 40, Y0 = Gm * sy + 18, LMl = LM.loads;
@@ -4891,8 +5059,9 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       if (mt === 'grade') fill = cs[lamGrade(c, LM)];
       else if (mt === 'flex') fill = cs[c.flex * 100 <= LMl.flexOk ? 0 : c.flex * 100 <= LMl.flexMax ? 1 : 2];
       else if (mt === 'sf') fill = cs[c.sf >= LMl.sf ? 0 : c.sf >= Math.min(2, LMl.sf) ? 1 : 2];
+      else if (mt === 'rock') { fill = c.rock ? cs[lamGradeOf(c, LM, 'rock')] : 'var(--muted)'; if (!c.rock) op = 0.12; }
       else { fill = 'var(--accent)'; op = 0.12 + 0.88 * (mt === 'thick' ? c.S.h / tmax : c.S.kg / kmax); }
-      var tip = lamLabel(c.S) + ': ' + (c.S.h * 1000).toFixed(2) + ' mm, ' + (c.S.kg * 0.0929 * LB * 16).toFixed(1) + ' oz/ft². Flex ' + (c.flex * 100).toFixed(1) + '%, safety factor ' + c.sf.toFixed(1) + (c.floor ? ' (floor)' : '');
+      var tip = lamLabel(c.S) + ': ' + (c.S.h * 1000).toFixed(2) + ' mm, ' + (c.S.kg * 0.0929 * LB * 16).toFixed(1) + ' oz/ft². Flex ' + (c.flex * 100).toFixed(1) + '%, safety factor ' + c.sf.toFixed(1) + (c.rock ? ', rock ' + (c.rock.force / LAM_LBF).toFixed(0) + ' lb' : '') + (c.floor ? ' (floor)' : '');
       g += '<rect x="' + f1(X(c.x - c.dx / 2)) + '" y="' + f1(Y(c.s + c.ds / 2)) + '" width="' + f1(c.dx * sx + 0.4) + '" height="' + f1(c.ds * sy + 0.4) + '" fill="' + fill + '" fill-opacity="' + op.toFixed(2) + '"><title>' + esc(tip) + '</title></rect>';
     });
     // edges of the foam core, along cell boundaries
@@ -4910,7 +5079,9 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     var wl = H.stations.map(function (st) { var k = 0; while (k < st.q.z.length - 1 && st.q.z[k] < H.draftZ) k++; return [st.x, st.s[k]]; });
     g += '<path class="lm-wl" d="M' + wl.map(function (q) { return f1(X(q[0])) + ',' + f1(Y(q[1])); }).join('L') + '"/>';
     g += '<path class="lm-edge" d="M' + f1(X(H.x0h)) + ',' + f1(Y(0)) + 'L' + H.stations.map(function (st) { return f1(X(st.x)) + ',' + f1(Y(st.G)); }).join('L') + 'L' + f1(X(H.x1h)) + ',' + f1(Y(0)) + 'Z"/>';
-    if (LM.ribs.on) for (var xr = H.x0h + LM.ribs.x0 / 100 * H.L; xr <= H.x0h + LM.ribs.x1 / 100 * H.L + 1e-6; xr += LM.ribs.space) {
+    var ribXs = lamRibXs(LM, H.L);
+    for (var ri = 0; ri < ribXs.length; ri++) {
+      var xr = H.x0h + ribXs[ri];
       var st0 = H.stations.reduce(function (m, s) { return Math.abs(s.x - xr) < Math.abs(m.x - xr) ? s : m; }, H.stations[0]);
       g += ln(X(xr), Y(0), X(xr), Y(Math.min(st0.G, LM.ribs.reach >= 99 ? st0.G : LM.ribs.reach)), 'lm-rib');
     }
@@ -4928,7 +5099,8 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   }
   function lmLegend() {
     var L = LM.loads, mt = LV.metric;
-    var t = mt === 'grade' ? ['Good', 'Fair', 'Needs work'] : mt === 'flex' ? ['≤ ' + L.flexOk + '%', '≤ ' + L.flexMax + '%', 'more'] : mt === 'sf' ? ['≥ ' + L.sf, '≥ ' + Math.min(2, L.sf), 'less'] : null;
+    var t = mt === 'grade' ? ['Good', 'Fair', 'Needs work'] : mt === 'flex' ? ['≤ ' + L.flexOk + '%', '≤ ' + L.flexMax + '%', 'more'] : mt === 'sf' ? ['≥ ' + L.sf, '≥ ' + Math.min(2, L.sf), 'less']
+      : mt === 'rock' ? ['≥ ' + LAM_ROCK_OK + '× the hit', '≥ 1×', 'breaks'] : null;
     $('lm-leg').innerHTML = t ? '<i class="lm-sw" style="background:var(--good)"></i>' + t[0] + ' <i class="lm-sw" style="background:var(--fair)"></i>' + t[1] + ' <i class="lm-sw" style="background:var(--poor)"></i>' + t[2]
       : 'darker is ' + (mt === 'thick' ? 'thicker' : 'heavier');
   }
@@ -4939,11 +5111,13 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   });
   $('lm-recs').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-rec]'); if (!b || !LV.res) return;
-    var r = LV.res.recs[+b.dataset.rec];
-    if (r.zone) { var z = JSON.parse(JSON.stringify(r.zone)); z.id = 'z' + Date.now().toString(36) + (LV.zid++); LM.zones.push(z); }
-    if (r.ribs) LM.ribs = JSON.parse(JSON.stringify(r.ribs));
+    lcMark(); lmApplyRec(LV.res.recs[+b.dataset.rec]);
     lmChanged(true);
   });
+  function lmApplyRec(r) {
+    if (r.zone) { var z = JSON.parse(JSON.stringify(r.zone)); z.id = 'z' + Date.now().toString(36) + (LV.zid++); LM.zones.push(z); }
+    if (r.ribs) LM.ribs = JSON.parse(JSON.stringify(r.ribs));
+  }
   function lmCSV(R) {
     var rows = [['Canoe layup sheet', new Date().toISOString().slice(0, 10)], [], ['Resin', LAM_RESINS[LM.resin].name, 'Process', LAM_PROCESS[LM.process][0], 'Fiber volume', LM.vf], [],
                 ['Stack', 'Layer (outside first)', 'Material', 'Angle to the hull', 'Count or thickness', 'Length from %', 'to %', 'Girth from keel in', 'to in', 'Where']];
@@ -4965,7 +5139,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     lay('Base skin', LM.base, null);
     LM.zones.forEach(function (Z) { if (Z.on !== false) lay(Z.name, Z.layers, Z); });
     if (LM.gunwale.on) lay('Gunwale sleeve', LM.gunwale.layers, null);
-    if (LM.ribs.on) lay('Rib caps', LM.ribs.layers, null);
+    if (LM.ribs.on) { lay('Rib caps', LM.ribs.layers, null); rows.push(['Ribs', 'inches from the stern tip'].concat(lamRibXs(LM, R.H.L).map(function (x) { return x.toFixed(1); }))); }
     if (LM.stringers.on) lay('Stringer caps', LM.stringers.layers, null);
     rows.push([], ['Part', 'Weight lb']);
     R.mass.rows.forEach(function (r) { rows.push([r.name, (r.kg * LB).toFixed(2)]); });
@@ -5012,12 +5186,12 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     lmEditor(); lmLegend(); lcRender(); lmChanged(false);
   }
   /* ---------- laminate: core placement editor ---------- */
-  var LC = { sel: null, tool: 'area', w: 3, pts: null, raf: 0, view: null, hover: null, say: '' };
+  var LC = { sel: null, tool: 'area', under: 'need', w: 3, pts: null, raf: 0, view: null, hover: null, say: '', rib: null, before: null, note: '' };
   try {
     var savedLC = JSON.parse(localStorage.getItem('canoe-hull-designer-lamcore') || 'null');
-    if (savedLC) { if (/^(area|strip|erase)$/.test(savedLC.tool)) LC.tool = savedLC.tool; if (savedLC.w >= 0.5 && savedLC.w <= 12) LC.w = savedLC.w; }
+    if (savedLC) { if (/^(area|strip|rib|erase)$/.test(savedLC.tool)) LC.tool = savedLC.tool; if (/^(need|bend)$/.test(savedLC.under)) LC.under = savedLC.under; if (savedLC.w >= 0.5 && savedLC.w <= 12) LC.w = savedLC.w; }
   } catch (e) {}
-  function lcStore() { try { localStorage.setItem('canoe-hull-designer-lamcore', JSON.stringify({ tool: LC.tool, w: LC.w })); } catch (e) {} }
+  function lcStore() { try { localStorage.setItem('canoe-hull-designer-lamcore', JSON.stringify({ tool: LC.tool, w: LC.w, under: LC.under })); } catch (e) {} }
   function lcOval(xc, ax, as) {           // an ellipse in [share of length, girth] for the floor
     var pts = [];
     for (var k = 0; k < 48; k++) { var t = 2 * Math.PI * k / 48; pts.push([+(xc + ax * Math.cos(t)).toFixed(4), +(as * Math.sin(t)).toFixed(2)]); }
@@ -5109,15 +5283,63 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   }
   function lcFinish(raw) {
     var c = lcCur(), v = LC.view;
-    if (!c || !v) return lcDraw();
+    if (!v) return lcDraw();
     var out = LC.tool === 'strip' ? lcStripOf(raw, LC.w) : lcOutline(raw);
     if (!out) { LC.say = LC.tool === 'strip' ? 'That stroke was too short to use.' : 'That was too small to use. Draw round a bigger area, or use Strip for a narrow band.'; lcDraw(); lcMsg(); return; }
+    lcMark();
+    if (!c) c = lcNewCore();                // nothing to draw into yet: start a foam core for this drawing
     var W = c.L.where || (c.L.where = { shapes: [], fa: false }), g = 1;
     W.shapes.forEach(function (sh) { g = Math.max(g, (sh.g || 0) + 1); });
     out.forEach(function (sh) { sh.g = g; sh.p = sh.p.map(function (q) { return [+(q[0] / v.H.L).toFixed(4), +q[1].toFixed(2)]; }); W.shapes.push(sh); });
     if (c.Z && c.Z.fit === undefined) c.Z.fit = 2;     // the skin over a drawn core follows it, until set otherwise
+    if (c.Z) lcStretch(c);                  // and its zone grows to take in whatever was drawn
     LC.say = '';
     lmChanged(true); lcDraw(); lcMsg();
+  }
+  // a new zone holding a foam core and one more of the inside skin layer over it, ready to be drawn into
+  function lcNewCore() {
+    var inner = LM.base.filter(function (Ly) { return !Ly.core; }).slice(-1)[0] || { m: 'eg6', a: 0, n: 1 };
+    var Z = { id: 'z' + Date.now().toString(36) + (LV.zid++), name: 'Drawn core', on: true, x0: 45, x1: 55, g0: 0, g1: 1, fit: 2,
+              layers: [{ core: 'h80', t: 6, where: { shapes: [], fa: false } }, { m: inner.m, a: inner.a, n: 1 }] };
+    LM.zones.push(Z); LC.sel = 'zones.' + (LM.zones.length - 1) + '.layers.0';
+    return { path: LC.sel, key: Z.id + ':0', Z: Z, L: Z.layers[0], name: Z.name };
+  }
+  // grow a zone so that it takes in everything drawn in its core layer
+  function lcStretch(c) {
+    var Z2 = c.Z, x0 = 1, x1 = 0, smax = 0, smin = Infinity, L = LV.res ? LV.res.H.L : 200, first = Z2.name === 'Drawn core' && c.L.where.shapes.every(function (sh) { return sh.g === c.L.where.shapes[0].g; });
+    c.L.where.shapes.forEach(function (sh) {
+      var r = sh.k === 'strip' ? sh.w / 2 : 0;
+      sh.p.forEach(function (q) {
+        [q[0], c.L.where.fa ? 1 - q[0] : q[0]].forEach(function (xf) { x0 = Math.min(x0, xf - r / L); x1 = Math.max(x1, xf + r / L); });
+        smax = Math.max(smax, Math.abs(q[1]) + r); smin = Math.min(smin, Math.max(Math.abs(q[1]) - r, 0));
+      });
+    });
+    var a0 = Math.max(0, Math.floor(x0 * 20) * 5), a1 = Math.min(100, Math.ceil(x1 * 20) * 5), g1 = Math.ceil(smax * 2) / 2 + 0.5, g0 = Math.floor(smin * 2) / 2;
+    if (first) { Z2.x0 = a0; Z2.x1 = a1; Z2.g0 = 0; Z2.g1 = g1; return; }
+    Z2.x0 = Math.min(Z2.x0, a0); Z2.x1 = Math.max(Z2.x1, a1);
+    if (Z2.g1 < 99) Z2.g1 = Math.max(Z2.g1, g1);
+    Z2.g0 = Math.min(Z2.g0, g0);
+  }
+  // remember the weight and the failing panels before a change, so the drawing can say what the change did
+  function lcMark() { if (LV.res && !LC.before) LC.before = { kg: LV.res.mass.kg, bad: LV.res.bad }; }
+  function lcNote(R) {
+    if (!LC.before) return;
+    var d = (R.mass.kg - LC.before.kg) * LB, pct = 100 * R.bad / R.H.cells.length;
+    LC.note = (Math.abs(d) < 0.05 ? 'No change in weight' : (d > 0 ? 'That added ' : 'That took off ') + Math.abs(d).toFixed(1) + ' lb') + ': the hull is now ' + (R.mass.kg * LB).toFixed(1) + ' lb. ' +
+      (R.bad ? pct.toFixed(pct < 10 ? 1 : 0) + '% of the shell still needs work' + (R.bad < LC.before.bad ? ', down from ' + (100 * LC.before.bad / R.H.cells.length).toFixed(0) + '%.' : '.') : 'Every panel now passes.');
+    LC.before = null;
+  }
+  // ribs placed one by one: shares of the length from the stern
+  function lcRibList() {
+    var L = LC.view ? LC.view.H.L : 200;
+    if (!LM.ribs.on) { LM.ribs.on = true; LM.ribs.at = []; }
+    else if (!Array.isArray(LM.ribs.at)) LM.ribs.at = lamRibsEven(LM, L);
+    return LM.ribs.at;
+  }
+  function lcRibNear(q) {
+    var v = LC.view, xs = lamRibXs(LM, v.H.L), best = -1, bd = 9 / v.sx;
+    xs.forEach(function (x, i) { var d = Math.abs(x - q[0]); if (d < bd) { bd = d; best = i; } });
+    return best;
   }
   function lcHit(sh, X, S, L, tol) {
     var P = sh.p.map(function (q) { return [q[0] * L, q[1]]; }), n = P.length, i;
@@ -5191,9 +5413,11 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       g.closePath();
     }
     g.save(); outline(); g.clip();
-    // curvature shading, both sides
+    // shading, both sides: panels that fail a test, or how tightly the hull bends
+    var need = LC.under === 'need', good = tokRGB('--good'), poor = tokRGB('--poor');
     H.cells.forEach(function (cl) {
-      var t = lcT(Math.hypot(cl.kt, cl.kl)), col = paper.map(function (p0, i) { return Math.round(p0 + (wl[i] - p0) * 0.85 * t); });
+      var gr = need ? lamGrade(cl, LM) : 0, to = need ? [good, fair, poor][gr] : wl, t = need ? [0.1, 0.5, 0.7][gr] : 0.85 * lcT(Math.hypot(cl.kt, cl.kl));
+      var col = paper.map(function (p0, i) { return Math.round(p0 + (to[i] - p0) * t); });
       g.fillStyle = rgb(col);
       var x = v.X(cl.x - x0h - cl.dx / 2), w = cl.dx * v.sx + 0.7, hgt = cl.ds * v.sy + 0.7;
       g.fillRect(x, v.Y(cl.s + cl.ds / 2), w, hgt); g.fillRect(x, v.Y(-cl.s + cl.ds / 2), w, hgt);
@@ -5205,12 +5429,12 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     lcLayers().forEach(function (x) { if (x !== c && lcHas(x.L) && (!x.Z || x.Z.on !== false)) lcPaint(o, v, x.L.where, rgb(muted)); });
     g.globalAlpha = 0.25; g.drawImage(off, 0, 0, W, Hh); g.globalAlpha = 1;
     if (c && lcHas(c.L)) {
-      o.clearRect(0, 0, W, Hh); lcPaint(o, v, c.L.where, rgb(fair));
+      o.clearRect(0, 0, W, Hh); lcPaint(o, v, c.L.where, rgb(acc));
       if (c.Z) { g.globalAlpha = 0.25; g.drawImage(off, 0, 0, W, Hh); g.globalAlpha = 1; g.save(); lcZonePath(g, v, c.Z); g.clip(); }
       g.globalAlpha = 0.6; g.drawImage(off, 0, 0, W, Hh); g.globalAlpha = 1;
       if (c.Z) g.restore();
     } else if (c) {                          // nothing drawn: the core fills its zone
-      g.save(); g.fillStyle = rgb(fair); g.globalAlpha = 0.3;
+      g.save(); g.fillStyle = rgb(acc); g.globalAlpha = 0.3;
       if (c.Z) { lcZonePath(g, v, c.Z); g.fill(); } else g.fillRect(0, 0, W, Hh);
       g.restore();
     }
@@ -5220,6 +5444,14 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       g.beginPath();
       H.stations.forEach(function (st, i) { var k = 0; while (k < st.q.z.length - 1 && st.q.z[k] < H.draftZ) k++; var y = v.Y(sd * st.s[k]); if (i) g.lineTo(v.X(st.x - x0h), y); else g.moveTo(v.X(st.x - x0h), y); });
       g.stroke();
+    });
+    // ribs, across the hull as far up each side as they reach
+    g.setLineDash([]);
+    var rxs = lamRibXs(LM, H.L), rr = LM.ribs.reach >= 99 ? Infinity : LM.ribs.reach;
+    rxs.forEach(function (x, i) {
+      var st = H.stations[clamp(Math.floor(x / H.L * H.NX), 0, H.NX - 1)], top = Math.min(st.G, rr);
+      g.strokeStyle = rgb(i === LC.rib ? acc : ink); g.lineWidth = Math.max(2.5, LM.ribs.w * v.sx); g.lineCap = 'butt';
+      g.beginPath(); g.moveTo(v.X(x), v.Y(top)); g.lineTo(v.X(x), v.Y(-top)); g.stroke();
     });
     g.restore();
     // hull edge, keel line, zone range
@@ -5240,7 +5472,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     g.fillText('keel', v.X(0) - 8, v.Y(0) + 3);
     g.textAlign = 'left'; g.fillText('stern', v.X(0), Hh - 6); g.textAlign = 'right'; g.fillText('bow', v.X(H.L), Hh - 6);
     g.textAlign = 'center'; g.fillText(Math.abs(v.sy / v.sx - 1) > 0.05 ? 'girth ×' + (v.sy / v.sx).toFixed(1) + ' · dashed blue: waterline' : 'true scale · dashed blue: waterline', v.X(H.L / 2), Hh - 6);
-    $('lc-box').className = 'lc-cv' + (!c ? ' off' : LC.tool === 'erase' ? ' erase' : '');
+    $('lc-box').className = 'lc-cv' + (LC.tool === 'erase' || LC.tool === 'rib' ? ' erase' : '');
   }
   function lcZonePath(g, v, Z) {
     var L = v.H.L, x0 = Z.x0 / 100 * L, x1 = Z.x1 / 100 * L, t = Z.g1 >= 99 ? v.Gm + 1 : Z.g1, b = Z.g0;
@@ -5259,9 +5491,10 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     el.textContent = Math.round(q[0] / H.L * 100) + '% from the stern, ' + sa.toFixed(1) + ' in from the keel · round the hull: ' + rad(cl.kt) + ' · along: ' + rad(cl.kl);
   }
   function lcMsg() {
-    var c = lcCur(), el = $('lc-msg'), R = LV.res;
+    var c = lcCur(), el = $('lc-msg'), R = LV.res, note = LC.note ? '<b class="lc-note">' + esc(LC.note) + '</b>' : '';
+    var nr = lamRibXs(LM, R ? R.H.L : 200).length, ribTxt = nr ? ' ' + nr + ' rib' + (nr > 1 ? 's' : '') + (Array.isArray(LM.ribs.at) ? ' placed by hand.' : ' evenly spaced.') : '';
     if (!c) {
-      el.innerHTML = 'There is no core in the layup yet. Add a core to the base skin or a zone, or <button type="button" class="lm-link" data-lc="floor">add a foam core floor</button> drawn as a football.';
+      el.innerHTML = note + 'There is no foam core yet. Draw an outline or a strip on the hull to start one, or press Add a football floor.' + ribTxt;
       return;
     }
     var core = LAM_CORE[c.L.core].name + ', ' + c.L.t + ' mm', a = R && R.mass.coreAreas ? R.mass.coreAreas[c.key] : null, kg = a != null ? lamStack([c.L], LM).kg * a * LB : null;
@@ -5286,7 +5519,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         if (typeof c.Z.fit === 'number') h += ' The other layers in this zone cover the core and ' + c.Z.fit + ' in past its edge.';
       }
     }
-    el.innerHTML = h;
+    el.innerHTML = note + h + ribTxt;
   }
   function lcRender() {
     var c = lcCur(), ls = lcLayers();
@@ -5294,8 +5527,11 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       return '<button type="button" data-p="' + x.path + '" aria-pressed="' + (c && x.path === c.path) + '">' + esc(x.name) + ' · ' + esc(LAM_CORE[x.L.core].name.replace(/ foam| infusion core/, '')) + ' ' + x.L.t + ' mm' + (x.Z && x.Z.on === false ? ' (off)' : '') + '</button>';
     }).join('');
     $('lc-layers').hidden = !ls.length;
-    $('lc-bar').classList.toggle('lc-off', !c);
     document.querySelectorAll('#lc-tools button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === LC.tool)); });
+    document.querySelectorAll('#lc-under button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.u === LC.under)); });
+    $('lc-leg').innerHTML = (LC.under === 'need' ? '<i class="lm-sw" style="background:var(--poor)"></i>needs work <i class="lm-sw" style="background:var(--fair)"></i>fair' : '<i class="lc-grad"></i>flat to tight bend') +
+      ' <i class="lm-sw lc-sw"></i>core <i class="lc-rb"></i>rib';
+    $('lc-fa').hidden = !c || LC.tool === 'rib';
     $('lc-w').textContent = fmtN(LC.w) + ' in';
     $('lc-wbox').hidden = LC.tool !== 'strip';
     var W = c && c.L.where;
@@ -5306,51 +5542,70 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   (function lcEvents() {
     $('lc-layers').addEventListener('click', function (e) { var b = e.target.closest('button[data-p]'); if (!b) return; LC.sel = b.dataset.p; LC.say = ''; lcRender(); });
     $('lc-tools').addEventListener('click', function (e) { var b = e.target.closest('button[data-t]'); if (!b) return; LC.tool = b.dataset.t; lcStore(); lcRender(); });
+    $('lc-under').addEventListener('click', function (e) { var b = e.target.closest('button[data-u]'); if (!b) return; LC.under = b.dataset.u; lcStore(); lcRender(); });
+    $('lc-quick').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-q]'); if (!b) return;
+      var q = b.dataset.q; LC.say = ''; lcMark();
+      if (q === 'floor') { var Z = lmZoneFrom('floor'); LM.zones.push(Z); LC.sel = 'zones.' + (LM.zones.length - 1) + '.layers.0'; LC.tool = 'area'; }
+      else if (q === 'ribs') { LM.ribs.on = true; delete LM.ribs.at; LC.tool = 'rib'; }
+      else {
+        // the lightest suggestion that clears each failing area
+        var recs = LV.res ? LV.res.recs.filter(function (r) { return r.zone || r.ribs; }) : [], pick = {};
+        recs.forEach(function (r) { if (!pick[r.group] || r.dkg < pick[r.group].dkg) pick[r.group] = r; });
+        var ks = Object.keys(pick);
+        if (!ks.length) { LC.before = null; LC.note = LV.res && LV.res.bad ? 'None of the ready-made fixes clears what is left. Try a thicker core, closer ribs or a stiffer fabric.' : 'Nothing needs fixing: every panel passes.'; lcRender(); return; }
+        ks.forEach(function (k) { lmApplyRec(pick[k]); });
+      }
+      lmChanged(true); lcRender();
+    });
     $('lc-wbox').addEventListener('click', function (e) { var b = e.target.closest('button[data-d]'); if (!b) return; LC.w = clamp(LC.w + 0.5 * parseInt(b.dataset.d, 10), 0.5, 12); lcStore(); lcRender(); });
     $('lc-fa').addEventListener('click', function () { var c = lcCur(); if (!c) return; var W = c.L.where || (c.L.where = { shapes: [], fa: false }); W.fa = !W.fa; lmChanged(true); lcRender(); });
     $('lc-undo').addEventListener('click', function () {
       var c = lcCur(); if (!c || !lcHas(c.L)) return;
+      lcMark();
       var W = c.L.where, g = 0; W.shapes.forEach(function (sh) { g = Math.max(g, sh.g || 0); });
       W.shapes = W.shapes.filter(function (sh) { return (sh.g || 0) !== g; }); LC.say = ''; lmChanged(true); lcRender();
     });
-    $('lc-clear').addEventListener('click', function () { var c = lcCur(); if (!c) return; delete c.L.where; LC.say = ''; lmChanged(true); lcRender(); });
+    $('lc-clear').addEventListener('click', function () { var c = lcCur(); if (!c) return; lcMark(); delete c.L.where; LC.say = ''; lmChanged(true); lcRender(); });
     $('lc-msg').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-lc]'); if (!b) return;
-      if (b.dataset.lc === 'floor') { var Z = lmZoneFrom('floor'); LM.zones.push(Z); LC.sel = 'zones.' + (LM.zones.length - 1) + '.layers.0'; lmChanged(true); lcRender(); return; }
       var c = lcCur(); if (!c || !c.Z || !lcHas(c.L)) return;
-      var Z2 = c.Z, x0 = 1, x1 = 0, smax = 0, smin = Infinity;
-      c.L.where.shapes.forEach(function (sh) {
-        var r = sh.k === 'strip' ? sh.w / 2 : 0, L = LV.res ? LV.res.H.L : 200;
-        sh.p.forEach(function (q) {
-          [q[0], c.L.where.fa ? 1 - q[0] : q[0]].forEach(function (xf) { x0 = Math.min(x0, xf - r / L); x1 = Math.max(x1, xf + r / L); });
-          smax = Math.max(smax, Math.abs(q[1]) + r); smin = Math.min(smin, Math.max(Math.abs(q[1]) - r, 0));
-        });
-      });
-      Z2.x0 = Math.min(Z2.x0, Math.max(0, Math.floor(x0 * 20) * 5)); Z2.x1 = Math.max(Z2.x1, Math.min(100, Math.ceil(x1 * 20) * 5));
-      if (Z2.g1 < 99) Z2.g1 = Math.max(Z2.g1, Math.ceil(smax * 2) / 2 + 0.5);
-      Z2.g0 = Math.min(Z2.g0, Math.floor(smin * 2) / 2);
-      lmChanged(true); lcRender();
+      lcStretch(c); lmChanged(true); lcRender();
     });
     var cv = $('lc-cv'), id = null;
     function at(e) { var r = cv.getBoundingClientRect(), v = LC.view; return [(e.clientX - r.left - v.X0) / v.sx, (v.cy - (e.clientY - r.top)) / v.sy]; }
     cv.addEventListener('pointerdown', function (e) {
-      var c = lcCur(); if (!c || !LC.view || e.button > 0) return;
+      var c = lcCur(); if (!LC.view || e.button > 0) return;
       e.preventDefault();
-      var q = at(e);
-      if (LC.tool === 'erase') { lcErase(c, q); return; }
+      var q = at(e), L = LC.view.H.L, near = lcRibNear(q);
+      if (LC.tool === 'erase') {
+        if (near >= 0) { lcMark(); var list = lcRibList().sort(function (a, b) { return a - b; }); list.splice(near, 1); if (!list.length) { LM.ribs.on = false; delete LM.ribs.at; } lmChanged(true); lcRender(); return; }
+        if (c) { lcMark(); lcErase(c, q); }
+        return;
+      }
+      if (LC.tool === 'rib') {
+        if (q[0] < 0 || q[0] > L) return;
+        lcMark();
+        var at2 = lcRibList().sort(function (a, b) { return a - b; });
+        if (near < 0) { at2.push(+(q[0] / L).toFixed(4)); near = at2.length - 1; }
+        LC.rib = near; id = e.pointerId; try { cv.setPointerCapture(id); } catch (x) {}
+        lcRedraw(); return;
+      }
       id = e.pointerId; try { cv.setPointerCapture(id); } catch (x) {}
       LC.pts = [q]; lcRedraw();
     });
     cv.addEventListener('pointermove', function (e) {
       if (!LC.view) return;
       var q = at(e); LC.hover = q; lcReadout();
+      if (e.pointerId === id && LC.rib != null) { LM.ribs.at[LC.rib] = +clamp(q[0] / LC.view.H.L, 0.02, 0.98).toFixed(4); lcRedraw(); return; }
       if (e.pointerId !== id || !LC.pts) return;
       var l = LC.pts[LC.pts.length - 1];
       if (Math.hypot((q[0] - l[0]) * LC.view.sx, (q[1] - l[1]) * LC.view.sy) < 2) return;
       LC.pts.push(q); lcRedraw();
     });
-    cv.addEventListener('pointerup', function (e) { if (e.pointerId !== id) return; id = null; var pts = LC.pts; LC.pts = null; if (pts) lcFinish(pts); });
-    cv.addEventListener('pointercancel', function (e) { if (e.pointerId !== id) return; id = null; LC.pts = null; lcDraw(); });
+    function ribDone() { LC.rib = null; LM.ribs.at.sort(function (a, b) { return a - b; }); lmChanged(true); lcRender(); }
+    cv.addEventListener('pointerup', function (e) { if (e.pointerId !== id) return; id = null; if (LC.rib != null) return ribDone(); var pts = LC.pts; LC.pts = null; if (pts) lcFinish(pts); });
+    cv.addEventListener('pointercancel', function (e) { if (e.pointerId !== id) return; id = null; if (LC.rib != null) return ribDone(); LC.pts = null; lcDraw(); });
     cv.addEventListener('pointerleave', function () { if (!LC.pts) { LC.hover = null; lcReadout(); } });
     window.addEventListener('resize', function () { if (!$('ov-lam').hidden) lcRedraw(); });
     try {

@@ -1,11 +1,11 @@
 {
   "_about": "Water and use profiles. Each scores a design 0-100. targets give [poor, good] for a metric; the score rises linearly between them, and past poor it keeps falling (to minus one full weight). weights say how much each metric counts. constraints are hard limits; a design that breaks one is marked and penalised. load sets crew posture (kneeling, low_seat, seated), weights and centre of gravity heights; see stability.load_case. waves are a JONSWAP sea: significant height (m), peak period (s), gamma (1 developed swell, 3.3 wind chop, 5-7 short steep waves). depth_m is water depth, null for deep.",
   "calm-lake": {
-    "description": "Sheltered lake or pond, flat water, tandem cruising at 4 mph.",
+    "description": "Sheltered lake or pond, flat water with a light breeze, tandem cruising at 4 mph.",
     "water": "fresh",
     "depth_m": null,
     "speed_mph": 4.0,
-    "wind_mph": 0,
+    "wind_mph": 4,
     "waves": null,
     "load": {
       "crew_posture": "seated"
@@ -41,22 +41,32 @@
         24,
         36
       ],
-      "turn_index": [
-        0.22,
-        0.27
-      ],
       "wetted_ft2": [
         32,
         24
+      ],
+      "track_index": [
+        0.45,
+        0.65
+      ],
+      "reach_in": [
+        24.5,
+        20.5
+      ],
+      "windage_ratio": [
+        3.2,
+        2.2
       ]
     },
     "weights": {
       "resistance_lbf": 3,
       "speed_at_power_mph": 2,
       "gm_in": 1,
-      "flood_angle": 1,
-      "turn_index": 1,
-      "wetted_ft2": 0.5
+      "flood_angle": 1.5,
+      "wetted_ft2": 0.5,
+      "track_index": 2,
+      "reach_in": 1.5,
+      "windage_ratio": 1
     }
   },
   "fast-flatwater": {
@@ -97,16 +107,21 @@
         0.8,
         2.5
       ],
-      "turn_index": [
-        0.22,
-        0.27
+      "track_index": [
+        0.5,
+        0.7
+      ],
+      "reach_in": [
+        24,
+        20
       ]
     },
     "weights": {
       "resistance_lbf": 4,
       "speed_at_power_mph": 3,
       "gm_in": 1,
-      "turn_index": 1
+      "track_index": 1.5,
+      "reach_in": 1
     }
   },
   "big-lake-chop": {
@@ -170,9 +185,17 @@
         1.5,
         4.0
       ],
-      "turn_index": [
-        0.23,
-        0.27
+      "track_index": [
+        0.45,
+        0.62
+      ],
+      "windage_ratio": [
+        3.2,
+        2.2
+      ],
+      "reach_in": [
+        24.5,
+        20.5
       ]
     },
     "weights": {
@@ -183,7 +206,9 @@
       "secondary_ratio": 1,
       "side_windage_ft2": 1,
       "gm_in": 1,
-      "turn_index": 1.5
+      "track_index": 1.5,
+      "windage_ratio": 1,
+      "reach_in": 1
     }
   },
   "boat-wakes": {
@@ -297,9 +322,17 @@
         1.5,
         4.0
       ],
-      "turn_index": [
-        0.23,
-        0.27
+      "track_index": [
+        0.45,
+        0.62
+      ],
+      "windage_ratio": [
+        3.2,
+        2.2
+      ],
+      "reach_in": [
+        24.5,
+        20.5
       ]
     },
     "weights": {
@@ -309,7 +342,9 @@
       "secondary_ratio": 1,
       "side_windage_ft2": 1,
       "gm_in": 1,
-      "turn_index": 1.5
+      "track_index": 1.5,
+      "windage_ratio": 1,
+      "reach_in": 1
     }
   },
   "shallow-river": {
@@ -345,10 +380,6 @@
         5.5,
         3.8
       ],
-      "turn_index": [
-        0.27,
-        0.22
-      ],
       "gm_in": [
         1.5,
         4.0
@@ -356,14 +387,18 @@
       "flood_angle": [
         24,
         36
+      ],
+      "track_index": [
+        0.68,
+        0.45
       ]
     },
     "weights": {
       "resistance_lbf": 2,
       "draft_max_in": 2,
-      "turn_index": 2,
       "gm_in": 1,
-      "flood_angle": 1
+      "flood_angle": 1,
+      "track_index": 2
     }
   },
   "moving-water": {
@@ -395,10 +430,6 @@
       ]
     },
     "targets": {
-      "turn_index": [
-        0.26,
-        0.2
-      ],
       "end_depth_ratio": [
         0.5,
         0.25
@@ -418,15 +449,19 @@
       "resistance_lbf": [
         14,
         6
+      ],
+      "track_index": [
+        0.55,
+        0.3
       ]
     },
     "weights": {
-      "turn_index": 3,
       "end_depth_ratio": 1,
       "bow_wet_prob": 2,
       "flood_angle": 2,
       "secondary_ratio": 2,
-      "resistance_lbf": 0.5
+      "resistance_lbf": 0.5,
+      "track_index": 3
     }
   },
   "kids-pack-boat": {
@@ -484,13 +519,13 @@
         2.2,
         3.0
       ],
-      "turn_index": [
-        0.24,
-        0.27
-      ],
       "side_windage_ft2": [
         5,
         3
+      ],
+      "track_index": [
+        0.5,
+        0.65
       ]
     },
     "weights": {
@@ -500,8 +535,8 @@
       "gunwale_beam_in": 2,
       "freeboard_mid_in": 1,
       "speed_at_power_mph": 1.5,
-      "turn_index": 1,
-      "side_windage_ft2": 1
+      "side_windage_ft2": 1,
+      "track_index": 1
     }
   }
 }
