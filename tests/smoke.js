@@ -10,7 +10,7 @@ const path = require('path');
     const pg = await b.newPage({ viewport: vp });
     const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await pg.goto('file://' + file); await pg.waitForTimeout(400);
-    const step = async (name, fn) => { try { await fn(); } catch (e) { errs.push(name + ': ' + e.message.split('\n')[0]); } };
+    const step = async (name, fn) => { const t0 = Date.now(); try { await fn(); if (process.env.SMOKE_LOG) console.log('  ' + name + ' ' + (Date.now() - t0) + ' ms'); } catch (e) { errs.push(name + ': ' + e.message.split('\n')[0]); } };
     const press = (name) => pg.evaluate(n => [...document.querySelectorAll('button')].find(x => x.textContent.trim() === n).click(), name);
     await step('analyze', async () => {
       await pg.click('#open-an'); await pg.waitForSelector('#an-score b', { timeout: 20000 }); await pg.waitForTimeout(1500);

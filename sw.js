@@ -1,6 +1,6 @@
 // Keeps a copy of the designer so it opens without signal (on the water).
 // Always tries the network first, so updates show up as soon as you are online.
-var CACHE = 'canoe-v1';
+var CACHE = 'canoe-v2';
 var CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {

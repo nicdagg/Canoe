@@ -461,6 +461,29 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   .preview { top: calc(env(safe-area-inset-top, 0px) + 8px); }
   .drawing { display: grid; gap: 6px; padding: 10px; }
 }
+.ai-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding-block: 10px 14px; max-width: 860px; width: 100%; margin-inline: auto; }
+.ai-setup { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--panel); }
+.ai-setup summary { cursor: pointer; font-weight: 600; }
+.ai-setup summary span { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.ai-setup p { margin: 8px 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.ai-setup a { color: var(--accent); }
+.ai-f { display: block; margin: 8px 0; font-size: 13px; color: var(--muted); }
+.ai-f input, .ai-f select { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; font: 14px var(--f-body); }
+.ai-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ai-note { color: var(--muted); font-size: 13px; margin: 0; }
+.ai-log { flex: 1 1 auto; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
+.ai-m { max-width: 92%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); line-height: 1.5; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ai-m.you { align-self: flex-end; background: var(--hull); }
+.ai-m.err { border-color: var(--poor); color: var(--poor); }
+.ai-m.wait { color: var(--muted); font-style: italic; }
+.ai-offer { align-self: stretch; border: 1px solid var(--accent); border-radius: 10px; padding: 10px 12px; background: var(--paper); }
+.ai-offer h3 { margin: 0 0 4px; font: 600 15px var(--f-body); }
+.ai-offer table { border-collapse: collapse; font-size: 13.5px; margin: 6px 0 8px; }
+.ai-offer td { padding: 2px 14px 2px 0; }
+.ai-offer td.n { font-family: var(--f-mono); }
+.ai-ask { display: flex; gap: 8px; align-items: flex-end; }
+.ai-ask textarea { flex: 1 1 auto; min-height: 46px; padding: 9px 10px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; font: 15px/1.4 var(--f-body); resize: vertical; }
+#ai-ideas { padding-block: 0; }
 </style>
 
 <div class="app">
@@ -482,6 +505,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         <button type="button" id="open-an">Analyze</button>
         <button type="button" id="open-mold">Mold</button>
         <button type="button" id="open-lam">Laminate</button>
+        <button type="button" id="open-ai">Ask Claude</button>
       </div>
     </div>
     <div class="drawing">
@@ -817,6 +841,50 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       <button type="button" data-v="reset" aria-pressed="false">Reset</button>
     </div>
     <div class="hintbar">Drag to rotate. Pinch or scroll to zoom. Two fingers move the view.</div>
+  </div>
+</div>
+
+<div class="ov" id="ov-ai" role="dialog" aria-label="Ask Claude" hidden>
+  <div class="ov-bar gut">
+    <h2>Ask Claude</h2>
+    <div class="ov-actions">
+      <button type="button" class="btn" id="ai-clear">New chat</button>
+      <button type="button" class="btn primary" id="ai-close">Close</button>
+    </div>
+  </div>
+  <div class="ai-body gut">
+    <details class="ai-setup" id="ai-setup">
+      <summary>Setup <span id="ai-setup-state"></span></summary>
+      <p>This is optional. It sends your question and this design's numbers to Anthropic, the company that makes Claude, and it is billed to an Anthropic account per question. Everything else in the designer keeps working without it.</p>
+      <p>To use it you need your own key from <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a>. The key is kept only in this browser on this device. It is never put in the design files or shared with anyone else who opens this page.</p>
+      <label class="ai-f">Your Anthropic key
+        <input type="password" id="ai-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+      </label>
+      <label class="ai-f">Which Claude
+        <select id="ai-model">
+          <option value="claude-fable-5-2">Fable 5.2: the most capable, roughly 10 to 50 cents a question</option>
+          <option value="claude-opus-5-5">Opus 5.5: very good, roughly 5 to 25 cents a question</option>
+          <option value="claude-haiku-5-5">Haiku 5.5: quick and simple, about a cent a question</option>
+        </select>
+      </label>
+      <div class="ai-row">
+        <button type="button" class="btn primary" id="ai-save">Save on this device</button>
+        <button type="button" class="btn" id="ai-forget">Forget my key</button>
+        <span class="ai-note" id="ai-key-msg" role="status"></span>
+      </div>
+    </details>
+    <div class="ai-log" id="ai-log" aria-live="polite"></div>
+    <div class="chips" id="ai-ideas">
+      <button type="button">Explain my score in plain words</button>
+      <button type="button">What should I change first for this water?</button>
+      <button type="button">Make it track straighter without getting much slower</button>
+      <button type="button">Is this a sensible boat for a beginner?</button>
+    </div>
+    <div class="ai-ask">
+      <textarea id="ai-q" rows="2" aria-label="Your question" placeholder="Ask about this design, or say what you want it to do better"></textarea>
+      <button type="button" class="btn primary" id="ai-send">Ask</button>
+    </div>
+    <p class="ai-note" id="ai-cost"></p>
   </div>
 </div>
 
@@ -2441,6 +2509,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     else if (!$('ov-an').hidden) { stopSearch(); stopAnim(); closeOverlay('ov-an', 'open-an'); }
     else if (!$('ov-mold').hidden) closeOverlay('ov-mold', 'open-mold');
     else if (!$('ov-lam').hidden) closeOverlay('ov-lam', 'open-lam');
+    else if (!$('ov-ai').hidden) closeOverlay('ov-ai', 'open-ai');
   });
   window.addEventListener('resize', function () {
     if (!$('ov-plan').hidden && pz) pz.fit();
@@ -5803,6 +5872,196 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
         svUseLocal('Couldn\'t reach the saved designs, so these are saved in this browser only.');
       });
     }, function () { svUseLocal('Saved in this browser only.'); });
+  })();
+
+  /* ---------- Ask Claude (optional, uses the person's own Anthropic key) ---------- */
+  var AI_PRICE = { 'claude-fable-5-2': [8, 40], 'claude-opus-5-5': [4, 20], 'claude-haiku-5-5': [0.1, 0.5] };   // $ per million tokens in, out
+  var AI_KEY = 'canoe-hull-designer-claude';
+  var AI_ROUNDS = 8;
+  function aiSystem() {
+    var rows = Object.keys(specs).map(function (k) {
+      var r = specs[k], end = /^b_/.test(k) ? ' (bow)' : /^s_/.test(k) ? ' (stern)' : '';
+      return k + ' | ' + r[1] + end + ' | ' + (r[2] || '-') + ' | ' + r[3] + ' to ' + r[4] + ' | step ' + r[5] + (r[6] ? ' | ' + r[6] : '');
+    });
+    var waters = Object.keys(CONDS).map(function (k) { return k + ' | ' + COND_NAMES[k] + ' | ' + CONDS[k].description; });
+    var mets = Object.keys(METRICS).map(function (k) { return k + ' | ' + METRICS[k][0] + (METRICS[k][1] ? ' | ' + METRICS[k][1] : ''); });
+    return 'You are the design helper inside a canoe hull designer, a web page a hobbyist uses to shape a canoe they plan to build at home. ' +
+      'The person is not an engineer or a programmer. Answer in plain, friendly language, in short paragraphs with no headings, tables or markdown symbols, because the page shows your text exactly as written. ' +
+      'Use inches, feet, pounds and mph. Keep answers brief: lead with the answer, then the reason.\n\n' +
+      'Each message from the person starts with a snapshot of the current design: the slider values, the water type they are looking at, the score out of 100 for that water with every number behind it, and the score for each other water type. ' +
+      'The scores come from a simplified computer model (strip hydrostatics, thin-ship wave drag, strip-theory motions). They are good for comparing one shape with another and less good as absolute predictions, so say so when someone leans hard on a single number.\n\n' +
+      'You have one tool, try_shape. It runs the same model on a changed set of sliders and returns the new score and numbers without changing what the person sees. ' +
+      'Whenever the person asks how to improve something, or you are about to recommend a change, test it with try_shape first instead of guessing, and try a few variations when the first is not clearly better. ' +
+      'Watch for trade-offs: report what got worse as well as what got better. ' +
+      'When you have a shape worth recommending, call try_shape once more with offer set to true and a short label. The page then shows the person a card with a "Use this shape" button, and they can go back afterwards. Offer at most one shape per answer, and only one you have tested. ' +
+      'Never tell the person a change has been made; they choose whether to apply it.\n\n' +
+      'Sliders (key | name | unit | range | step | note). Bow and stern have separate copies of the end sliders:\n' + rows.join('\n') + '\n\n' +
+      'Water types (key | name | what it means):\n' + waters.join('\n') + '\n\n' +
+      'Numbers in a result (key | meaning | unit). track_index: higher holds a straight line better. reach_in: how far the paddler leans out to reach the water, lower is easier. windage_ratio: how much the wind pushes the boat around, lower is better:\n' + mets.join('\n') + '\n\n' +
+      'The page also has Mold and Laminate tools for building the boat. You cannot see or change those, so say that plainly if asked and point the person to those buttons. Stay on canoe design, building and paddling.';
+  }
+  function aiTools() {
+    return [{
+      name: 'try_shape',
+      description: 'Run the hull model on the current design with some sliders changed, for one water type. Returns the score out of 100, whether every limit is met, and the numbers behind the score. Does not change the design on screen. Call it before recommending any change, and call it with offer true to put a tested shape in front of the person with a button to use it.',
+      strict: true,
+      input_schema: {
+        type: 'object', additionalProperties: false, required: ['water', 'changes', 'offer', 'label'],
+        properties: {
+          water: { type: 'string', enum: Object.keys(CONDS), description: 'Water type to score for.' },
+          changes: { type: 'array', description: 'Sliders to change from the current design. Leave out sliders that stay the same.',
+            items: { type: 'object', additionalProperties: false, required: ['slider', 'value'],
+              properties: { slider: { type: 'string', enum: Object.keys(specs) }, value: { type: 'number' } } } },
+          offer: { type: 'boolean', description: 'True to show this shape to the person as a suggestion they can apply.' },
+          label: { type: 'string', description: 'A few plain words naming the idea, for example "Narrower, finer ends".' }
+        }
+      }
+    }];
+  }
+  function aiRound(v, d) { return v == null || !isFinite(v) ? null : +v.toFixed(d == null ? 2 : d); }
+  function aiBrief(r, full) {
+    if (!r || !r.m) return { error: 'This shape could not be analysed.' };
+    if (r.m.overloaded) return { error: 'Overloaded: this hull only floats ' + Math.floor(r.m.capacity_lb) + ' lb.' };
+    var o = { score: Math.round(r.s.raw), meets_every_limit: !!r.s.feasible };
+    if (!r.s.feasible) o.limits_broken = r.s.violations.map(violationText);
+    if (full) { o.numbers = {}; Object.keys(METRICS).forEach(function (k) { if (typeof r.m[k] === 'number') o.numbers[k] = aiRound(r.m[k], METRICS[k][2] + 1); }); }
+    return o;
+  }
+  function aiShape(changes) {
+    var p = params(), ch = {};
+    (changes || []).forEach(function (c) {
+      var r = specs[c.slider]; if (!r || typeof c.value !== 'number' || !isFinite(c.value)) return;
+      var v = +(Math.round(clamp(c.value, r[3], r[4]) / r[5]) * r[5]).toFixed(4);
+      if (v !== p[c.slider]) { ch[c.slider] = v; p[c.slider] = v; }
+    });
+    return { p: p, ch: ch };
+  }
+  function aiSnapshot() {
+    var p = params(), keys = Object.keys(CONDS);
+    return Promise.all(keys.map(function (k) { return pool.run(p, CONDS[k], false); })).then(function (rs) {
+      var all = {}; keys.forEach(function (k, i) { var b = aiBrief(rs[i], false); all[k] = b.error || (b.meets_every_limit ? b.score : b.score + ' but breaks a limit'); });
+      return JSON.stringify({ sliders: p, bow_and_stern_linked: !!state.link, water_shown: AN.cond, result_for_this_water: aiBrief(rs[keys.indexOf(AN.cond)], true), score_in_each_water: all });
+    });
+  }
+  function aiCall(S, messages) {
+    var fable = /fable/.test(S.model);
+    var headers = { 'content-type': 'application/json', 'x-api-key': S.key, 'anthropic-version': '2026-10-21', 'anthropic-dangerous-direct-browser-access': 'true' };
+    var body = { model: S.model, max_tokens: 16000, output_config: { effort: 'medium' },
+      system: [{ type: 'text', text: S.system, cache_control: { type: 'ephemeral' } }], tools: S.tools, messages: messages };
+    if (fable) { headers['anthropic-beta'] = 'server-side-fallback-2026-07-01'; body.fallbacks = 'default'; }
+    return fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: headers, body: JSON.stringify(body) }).then(function (res) {
+      return res.text().then(function (t) {
+        var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (res.ok && j) return j;
+        var why = j && j.error && j.error.message ? j.error.message : '';
+        var e = new Error(res.status === 401 ? 'Anthropic did not accept that key. Check it in Setup.' :
+          res.status === 403 ? 'That key is not allowed to use this model. Try another one in Setup.' :
+          res.status === 429 ? 'Your Anthropic account has hit its limit for now. Wait a minute and try again, or check the account has credit.' :
+          res.status === 529 || res.status >= 500 ? 'Claude is busy right now. Try again in a minute.' :
+          'Claude could not answer (' + res.status + ').' + (why ? ' ' + why : ''));
+        throw e;
+      });
+    }, function () { throw new Error('Could not reach Anthropic. Check your internet connection.'); });
+  }
+  function aiCost(model, u) {
+    var pr = AI_PRICE[model] || AI_PRICE['claude-fable-5-2']; if (!u) return 0;
+    return ((u.input_tokens || 0) + 1.25 * (u.cache_creation_input_tokens || 0) + 0.1 * (u.cache_read_input_tokens || 0)) * pr[0] / 1e6 + (u.output_tokens || 0) * pr[1] / 1e6;
+  }
+  (function initAsk() {
+    var S = { key: '', model: 'claude-fable-5-2', msgs: [], busy: false, spent: 0, prev: null, system: '', tools: null };
+    try { var sv = JSON.parse(localStorage.getItem(AI_KEY) || 'null'); if (sv) { if (typeof sv.key === 'string') S.key = sv.key; if (AI_PRICE[sv.model]) S.model = sv.model; } } catch (e) {}
+    var log = $('ai-log');
+    function setupState() {
+      $('ai-key').value = S.key; $('ai-model').value = S.model;
+      $('ai-setup-state').textContent = S.key ? 'key saved on this device' : 'needed before the first question';
+      $('ai-setup').open = !S.key;
+    }
+    function bubble(cls, text) { var d = document.createElement('div'); d.className = 'ai-m ' + cls; d.textContent = text; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
+    function costLine() { $('ai-cost').textContent = S.spent ? 'This chat has cost about ' + (S.spent < 0.01 ? 'less than 1 cent' : S.spent < 1 ? Math.round(S.spent * 100) + ' cents' : '$' + S.spent.toFixed(2)) + ' so far, billed to your Anthropic account.' : ''; }
+    function offer(label, sh, before, after) {
+      var d = document.createElement('div'); d.className = 'ai-offer';
+      var h = document.createElement('h3'); h.textContent = label || 'Suggested shape'; d.appendChild(h);
+      var t = document.createElement('table');
+      Object.keys(sh.ch).forEach(function (k) {
+        var r = specs[k], tr = t.insertRow(), end = /^b_/.test(k) ? 'Bow: ' : /^s_/.test(k) ? 'Stern: ' : '';
+        tr.insertCell().textContent = end + r[1];
+        var c = tr.insertCell(); c.className = 'n'; c.textContent = state[k] + ' → ' + sh.ch[k] + (r[2] ? ' ' + r[2] : '');
+      });
+      d.appendChild(t);
+      var n = document.createElement('p'); n.className = 'ai-note';
+      n.textContent = after.error ? after.error : 'Score for ' + COND_NAMES[before.water] + ': ' + (before.score == null ? '–' : before.score) + ' → ' + after.score + (after.meets_every_limit ? '' : ' (breaks a limit)');
+      d.appendChild(n);
+      var row = document.createElement('div'); row.className = 'ai-row'; row.style.marginTop = '8px';
+      var use = document.createElement('button'); use.type = 'button'; use.className = 'btn primary'; use.textContent = 'Use this shape';
+      var back = document.createElement('button'); back.type = 'button'; back.className = 'btn'; back.textContent = 'Go back'; back.hidden = true;
+      use.addEventListener('click', function () {
+        var prev = params(), link = state.link;
+        Object.keys(sh.ch).forEach(function (k) { if (specs[k]) state[k] = sh.ch[k]; });
+        if (state.link && !END_KEYS.every(function (k) { return state['b_' + k] === state['s_' + k]; })) state.link = false;
+        syncUI(); render(); use.hidden = true; back.hidden = false;
+        back.onclick = function () { Object.keys(prev).forEach(function (k) { if (specs[k]) state[k] = prev[k]; }); state.link = link; syncUI(); render(); back.hidden = true; use.hidden = false; };
+      });
+      row.appendChild(use); row.appendChild(back); d.appendChild(row);
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+    }
+    function runTool(u) {
+      var inp = u.input || {}; if (typeof inp === 'string') { try { inp = JSON.parse(inp); } catch (e) { inp = {}; } }
+      var water = CONDS[inp.water] ? inp.water : AN.cond, sh = aiShape(inp.changes), base = params();
+      return Promise.all([pool.run(sh.p, CONDS[water], false), inp.offer ? pool.run(base, CONDS[water], false) : null]).then(function (rs) {
+        var out = aiBrief(rs[0], true); out.water = water; out.sliders_changed = sh.ch;
+        if (inp.offer && Object.keys(sh.ch).length) { var b = aiBrief(rs[1], false); b.water = water; offer(inp.label, sh, b, out); out.shown_to_person = true; }
+        return { type: 'tool_result', tool_use_id: u.id, content: JSON.stringify(out) };
+      }, function () { return { type: 'tool_result', tool_use_id: u.id, content: 'The model could not run on that shape.', is_error: true }; });
+    }
+    function turn(wait, n) {
+      return aiCall(S, S.msgs).then(function (r) {
+        S.spent += aiCost(r.model && AI_PRICE[r.model] ? r.model : S.model, r.usage); costLine();
+        if (r.stop_reason === 'refusal') { S.msgs.pop(); throw new Error('Claude declined to answer that one. Try asking it another way.'); }
+        var blocks = r.content || [];
+        var text = blocks.filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join('\n').trim();
+        var uses = blocks.filter(function (b) { return b.type === 'tool_use'; });
+        S.msgs.push({ role: 'assistant', content: blocks });
+        if (r.stop_reason === 'tool_use' && uses.length) {
+          if (text) { wait.className = 'ai-m'; wait.textContent = text; wait = bubble('wait', 'Trying shapes…'); } else wait.textContent = 'Trying shapes…';
+          if (n >= AI_ROUNDS) throw new Error('Claude tried a lot of shapes without settling. Ask again with a narrower question.');
+          return Promise.all(uses.map(runTool)).then(function (res) { S.msgs.push({ role: 'user', content: res }); return turn(wait, n + 1); });
+        }
+        wait.className = 'ai-m';
+        wait.textContent = (text || 'Claude gave no answer. Try again.') + (r.stop_reason === 'max_tokens' ? '\n\n(The answer was cut short.)' : '');
+        log.scrollTop = log.scrollHeight;
+      });
+    }
+    function ask(q) {
+      q = (q || '').trim(); if (!q || S.busy) return;
+      if (!S.key) { $('ai-setup').open = true; $('ai-key').focus(); $('ai-key-msg').textContent = 'Add your key first.'; return; }
+      S.busy = true; $('ai-send').disabled = true; $('ai-q').value = '';
+      bubble('you', q); var wait = bubble('wait', 'Thinking…'), mark = S.msgs.length;
+      if (!S.tools) { S.system = aiSystem(); S.tools = aiTools(); }
+      aiSnapshot().then(function (snap) {
+        S.msgs.push({ role: 'user', content: 'Design right now:\n' + snap + '\n\nQuestion: ' + q });
+        return turn(wait, 0);
+      }).catch(function (e) {
+        // drop a half-finished exchange so the next question starts from a clean history
+        S.msgs.length = mark;
+        var w = log.querySelector('.ai-m.wait'); if (w) w.remove();
+        bubble('err', e && e.message ? e.message : 'Something went wrong.');
+      }).then(function () { S.busy = false; $('ai-send').disabled = false; });
+    }
+    // The claude.ai artifact sandbox blocks outside calls, so the button only shows on the website or a saved copy.
+    if (/claude/i.test(location.hostname)) $('open-ai').hidden = true;
+    $('open-ai').addEventListener('click', function () { if (!cur) render(); setupState(); openOverlay('ov-ai', S.key ? 'ai-q' : 'ai-key'); });
+    $('ai-close').addEventListener('click', function () { closeOverlay('ov-ai', 'open-ai'); });
+    $('ai-clear').addEventListener('click', function () { if (S.busy) return; S.msgs = []; S.spent = 0; log.textContent = ''; costLine(); });
+    $('ai-save').addEventListener('click', function () {
+      S.key = $('ai-key').value.trim(); S.model = $('ai-model').value;
+      var ok = true; try { localStorage.setItem(AI_KEY, JSON.stringify({ key: S.key, model: S.model })); } catch (e) { ok = false; }
+      setupState(); $('ai-key-msg').textContent = !S.key ? 'No key entered.' : ok ? 'Saved.' : 'This browser would not save it, so it will last until you close the page.';
+    });
+    $('ai-model').addEventListener('change', function () { S.model = $('ai-model').value; try { if (S.key) localStorage.setItem(AI_KEY, JSON.stringify({ key: S.key, model: S.model })); } catch (e) {} });
+    $('ai-forget').addEventListener('click', function () { S.key = ''; try { localStorage.removeItem(AI_KEY); } catch (e) {} setupState(); $('ai-key-msg').textContent = 'Key removed from this device.'; });
+    $('ai-send').addEventListener('click', function () { ask($('ai-q').value); });
+    $('ai-q').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask($('ai-q').value); } });
+    $('ai-ideas').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) ask(b.textContent); });
   })();
 
   syncUI();
