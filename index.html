@@ -695,7 +695,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   </div>
   <div class="an-scroll" id="md-body">
     <div class="an-wrap gut">
-      <p class="an-desc">A foam plug for this hull, keel up on a flat table, cut into layers and tiles a CNC router can mill. Fair and coat the plug, then build the fiberglass mold on it. Save plug files gives one zip with STL tiles for CAM, DXF outlines, the drawing and a tile list.</p>
+      <p class="an-desc">A foam plug for this hull, keel up on a flat table, cut into layers and tiles a CNC router can mill. Fair and coat the plug, then build the fiberglass mold on it. Save plug files gives one zip with STL tiles for CAM, DXF outlines, the drawing, a tile list and a step-by-step milling guide.</p>
       <p class="msg md-status" id="md-status" role="status"></p>
       <p class="note" id="md-nosave" hidden>Saving the files needs the designer open in claude.ai.</p>
       <div class="md-cols">
@@ -1275,10 +1275,20 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       // sink in inches (down positive); trim in inches over the waterline length (bow down positive)
       return { sink: Math.max(0, cs * V / (L * L) * F), trim: ct * V / (L * L * L) * F * L, cs: cs, fh: fh };
     }
+    // Thin-ship theory has no viscosity and no breaking, so it over-predicts the short waves a hull makes when it moves
+    // slowly: below a length Froude number of about 0.2 real wave drag all but vanishes. The Michell result is faded out
+    // there, with the fade set against published drag figures for sea kayaks at 3 to 4.5 knots. It works on the length
+    // of the longest wave the hull can make, so the long waves of shallow water are left alone.
+    function slowFade(U, L, depth) {
+      var km = kxMin(G / (U * U), depth);
+      if (!(km > 0)) return 1;
+      var f4 = Math.pow(1 / (km * L), 2);            // (wave length / 2 pi L)^2, which is Froude^4 in deep water
+      return f4 / (f4 + Math.pow(0.2, 4));
+    }
     function calm(ctx, mph, headwind) {
       var w = ctx.w, U = mph * MPH, up = ctx.up, S = up.wetted_ft2 * 0.09290304, L = up.lwl_in * IN;
       var Rf = 0.5 * w.rho * U * U * S * (0.075 / Math.pow(Math.log10(U * L / w.nu) - 2, 2)) * ctx.k1;
-      var Rw = michell(ctx.off, U, ctx.depth, w.rho), Ua = U + (headwind || 0) * MPH;
+      var Rw = michell(ctx.off, U, ctx.depth, w.rho) * slowFade(U, L, ctx.depth), Ua = U + (headwind || 0) * MPH;
       var Ra = 0.5 * RHO_AIR * 0.9 * ctx.wind.front * 0.09290304 * Ua * Math.abs(Ua);
       return { f: Rf / LBF, w: Rw / LBF, a: Ra / LBF, t: (Rf + Rw + Ra) / LBF, P: (Rf + Rw + Ra) * U, fn: U / Math.sqrt(G * L) };
     }
@@ -3453,16 +3463,46 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
   }
 
   /* ---------- plug and mold: files ---------- */
-  function stlOf(tri, name, f) {           // binary STL; f maps hull coordinates to the file's
-    var n = tri.length / 9, buf = new ArrayBuffer(84 + 50 * n), dv = new DataView(buf), o = 84, i, k;
-    for (i = 0; i < Math.min(name.length, 79); i++) dv.setUint8(i, name.charCodeAt(i) & 127);
-    dv.setUint32(80, n, true);
-    for (i = 0; i < tri.length; i += 9) {
-      var a = f(tri[i], tri[i + 1], tri[i + 2]), b = f(tri[i + 3], tri[i + 4], tri[i + 5]), c = f(tri[i + 6], tri[i + 7], tri[i + 8]);
+  // Binary STL; f maps hull coordinates to the file's. Corners closer together than tol are made one point first, and
+  // triangles that collapse to a line or a point are left out. Without that, the fan of triangles where the plug pinches
+  // to a point at each stem ends in many points a hair apart, and CAM and mesh-repair tools report the tile as open.
+  function stlOf(tri, name, f, tol) {
+    tol = tol || 4e-4;                    // 0.0004 in, a hundredth of a millimetre: far finer than a router cuts
+    var grid = new Map(), pts = [], par = [], idx = [], keep = [], i, k, fr = Math.fround;
+    function find(j) { while (par[j] !== j) { par[j] = par[par[j]]; j = par[j]; } return j; }
+    // every corner joins the group of any corner within tol of it, so a chain of near points ends up as one
+    function add(p) {
+      var ix = Math.round(p[0] / tol), iy = Math.round(p[1] / tol), iz = Math.round(p[2] / tol), dx, dy, dz, j, q, list, me = -1;
+      for (dx = -1; dx <= 1; dx++) for (dy = -1; dy <= 1; dy++) for (dz = -1; dz <= 1; dz++) {
+        list = grid.get((ix + dx) + ',' + (iy + dy) + ',' + (iz + dz));
+        if (list) for (j = 0; j < list.length; j++) {
+          q = pts[list[j]];
+          if (q[0] === p[0] && q[1] === p[1] && q[2] === p[2]) return list[j];
+          if (Math.abs(q[0] - p[0]) <= tol && Math.abs(q[1] - p[1]) <= tol && Math.abs(q[2] - p[2]) <= tol) {
+            if (me < 0) { me = pts.length; pts.push(p); par.push(me); }
+            par[find(me)] = find(list[j]);
+          }
+        }
+      }
+      if (me < 0) { me = pts.length; pts.push(p); par.push(me); }
+      var key = ix + ',' + iy + ',' + iz; list = grid.get(key); if (!list) grid.set(key, list = []);
+      list.push(me);
+      return me;
+    }
+    for (i = 0; i < tri.length; i += 3) idx.push(add(f(tri[i], tri[i + 1], tri[i + 2]).map(fr)));
+    for (i = 0; i < idx.length; i += 3) {
+      var ia = find(idx[i]), ib = find(idx[i + 1]), ic = find(idx[i + 2]);
+      if (ia === ib || ib === ic || ia === ic) continue;
+      var a = pts[ia], b = pts[ib], c = pts[ic];
       var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
       var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, nl = Math.hypot(nx, ny, nz) || 1;
-      var v = [nx / nl, ny / nl, nz / nl, a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]];
-      for (k = 0; k < 12; k++) { dv.setFloat32(o, v[k], true); o += 4; }
+      keep.push([nx / nl, ny / nl, nz / nl, a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]]);
+    }
+    var n = keep.length, buf = new ArrayBuffer(84 + 50 * n), dv = new DataView(buf), o = 84;
+    for (i = 0; i < Math.min(name.length, 79); i++) dv.setUint8(i, name.charCodeAt(i) & 127);
+    dv.setUint32(80, n, true);
+    for (i = 0; i < n; i++) {
+      for (k = 0; k < 12; k++) { dv.setFloat32(o, keep[i][k], true); o += 4; }
       dv.setUint16(o, 0, true); o += 2;
     }
     return new Uint8Array(buf);
@@ -3533,6 +3573,56 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
     });
     return rows.map(function (rw) { return rw.map(function (c) { c = String(c); return /[",]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n') + '\n';
   }
+  // A step-by-step milling guide and a cut list with rough machine times, for someone new to CNC.
+  function moldGuide(pl) {
+    var o = pl.o, un = o.unit, u = moldScale(pl), r = function (v) { return (v * u).toFixed(un === 'mm' ? 0 : 2) + ' ' + un; };
+    var ball = 0.5, step = 0.12 * ball, feed = 150, tot = 0, flips = 0;
+    var rows = pl.tiles.map(function (T) {
+      var L = T.xb - T.xa, sides = T.mill === 'both' ? 2 : 1, fin = L * T.w / step / feed * sides, min = fin * 1.35;   // roughing adds about a third
+      tot += min; if (T.mill !== 'top') flips++;
+      return '  ' + (T.id + '      ').slice(0, 6) + (r(L) + ' x ' + r(T.w) + ' x ' + r(pl.t) + '                ').slice(0, 30) + (MILL_TXT[T.mill] + '                              ').slice(0, 32) + Math.round(min) + ' min';
+    });
+    return [
+      'MILLING GUIDE for the canoe plug, ' + new Date().toISOString().slice(0, 10),
+      '',
+      'This is a checklist for cutting the foam tiles on a 3-axis CNC router. It is written for someone doing it',
+      'for the first time. The times are rough estimates for a ' + ball + ' in ball end mill at ' + Math.round(step * 1000) / 1000 + ' in stepover and ' + feed + ' in/min;',
+      'your router and foam may be faster or slower.',
+      '',
+      'WHAT YOU NEED',
+      '  - Foam sheet ' + r(pl.t) + ' thick, enough for ' + pl.tiles.length + ' blocks (sizes below). Add a little to each block size if you can.',
+      '  - A flat spoilboard, double-sided tape or a vacuum hold-down. Foam cuts with almost no force, so tape is enough.',
+      '  - Roughing bit: 1/2 in flat end mill, long enough to reach ' + r(pl.t) + ' deep.',
+      '  - Finishing bit: 1/2 in ball end mill of the same reach.',
+      '  - 3/8 in dowel for the alignment pins.',
+      '  - CAM software that reads STL and writes G-code for your router (for example Fusion, VCarve, MeshCAM or FreeCAD).',
+      '',
+      'FOR EACH TILE',
+      '  1. Open tiles/<name>.stl in your CAM program. It is already in ' + (un === 'mm' ? 'millimetres' : 'inches') + '. Do not scale it.',
+      '  2. Set the stock to the block size in the list. The STL sits in its block: X0 is the block end nearer the stern,',
+      '     Y0 is the block edge, and Z0 is the face that goes DOWN toward the table. Put your work zero on that corner,',
+      '     with Z zero on the spoilboard, not on top of the foam.',
+      '  3. Drill or mill the dowel holes first (positions are in tiles.csv). They are how the layers line up later.',
+      '  4. Rough with the flat end mill, leaving about 0.04 in (1 mm). Foam: 16,000 to 18,000 rpm, 150 to 250 in/min,',
+      '     full depth in one or two passes.',
+      '  5. Finish with the ball end mill: parallel passes along X, ' + Math.round(step * 1000) / 1000 + ' in stepover (10 to 15% of the bit).',
+      '  6. Tiles marked "underside" or "both sides" have tumblehome. Mill one side, drop two dowel pins through the',
+      '     holes into the spoilboard, flip the block over on the pins (flip about the X axis), and mill the other side.',
+      '  7. Write the tile name and an arrow toward the bow on the block before you take it off the machine.',
+      '',
+      'BEFORE YOU CUT FOAM',
+      '  - Run the first tile with the bit 1 in above the foam and watch it trace the shape.',
+      '  - Check the first cut tile against outlines.dxf printed at full size, or against the block size in the list.',
+      '',
+      'PUTTING THE PLUG TOGETHER',
+      '  - Stack the layers keel up on a flat table, layer 1 on the table. Seams are staggered so they do not line up.',
+      '  - Glue with a thin spread of foam-safe adhesive and push the dowels through each layer as you go.',
+      '  - The foam is milled ' + o.coat + ' in under size: fair it, then build it back up with primer or tooling coat.',
+      '',
+      'CUT LIST  (' + pl.tiles.length + ' tiles, ' + flips + ' need flipping, about ' + (tot / 60).toFixed(1) + ' hours of machine time)',
+      '  Tile  Block (long x wide x thick)   Mill from                       Time',
+    ].concat(rows, ['']).join('\r\n');
+  }
   var MILL_TXT = { top: 'top', below: 'underside (flip the block)', both: 'both sides (mill, flip, mill)' };
   function moldReadme(pl) {
     var o = pl.o, un = o.unit, u = moldScale(pl), r = function (v) { return (v * u).toFixed(un === 'mm' ? 0 : 2) + ' ' + un; };
@@ -3558,6 +3648,7 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       '                 and the mold flange, gunwale lip, sealant tape, trim line, vacuum line, resin feed and base board, in plug X and Y.',
       'mold-drawing.svg The plan of the mold base and a map of the layers and tiles.',
       'settings.json    The hull settings and plug settings these files were made from.',
+      'MILLING-GUIDE.txt  Step-by-step milling instructions and a cut list with rough machine times.',
       '',
       'Milling: rough with a flat end mill, finish with a ball end mill at 10 to 15% stepover.',
       'Tiles marked "underside" or "both sides" have tumblehome in them, so part of the surface faces the table:',
@@ -3812,11 +3903,12 @@ textarea.sv-notes { min-height: 52px; margin: 6px 0 0; font-family: var(--f-body
       var enc = new TextEncoder(), files = [], i = 0, tiles = pl.tiles;
       (function next() {                // a few tiles per tick so the page keeps drawing
         var end = Math.min(i + 4, tiles.length);
-        for (; i < end; i++) files.push({ name: 'tiles/' + tiles[i].id + '.stl', data: stlOf(pl.mesh(tiles[i]), 'canoe plug tile ' + tiles[i].id, tileXf(pl, tiles[i])) });
+        for (; i < end; i++) files.push({ name: 'tiles/' + tiles[i].id + '.stl', data: stlOf(pl.mesh(tiles[i]), 'canoe plug tile ' + tiles[i].id, tileXf(pl, tiles[i]), 4e-4 * moldScale(pl)) });
         st.textContent = 'Building tiles, ' + i + ' of ' + tiles.length + '…';
         if (i < tiles.length) return setTimeout(next, 0);
-        files.unshift({ name: 'plug-whole.stl', data: stlOf(pl.mesh(pl.whole, 2), 'canoe plug, whole', plugXf(pl)) });
+        files.unshift({ name: 'plug-whole.stl', data: stlOf(pl.mesh(pl.whole, 2), 'canoe plug, whole', plugXf(pl), 4e-4 * moldScale(pl)) });
         if (pl.dams.length) files.push({ name: 'dams.dxf', data: enc.encode(damsDxf(pl)) });
+        files.push({ name: 'MILLING-GUIDE.txt', data: enc.encode(moldGuide(pl)) });
         files.push({ name: 'tiles.csv', data: enc.encode(moldCSV(pl)) }, { name: 'outlines.dxf', data: enc.encode(dxfOf(pl)) },
                    { name: 'mold-drawing.svg', data: enc.encode('<?xml version="1.0" encoding="UTF-8"?>\n' + moldDrawing(pl, true)) },
                    { name: 'settings.json', data: enc.encode(JSON.stringify({ designer: JSON.parse($('cfg').textContent), plug: pl.o }, null, 2)) },
