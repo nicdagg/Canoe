@@ -166,6 +166,11 @@ def _wetted_area(H, zw):
     return 2 * float(np.sum(t1 + t2))
 
 
+def skin_area(H):
+    """Whole outside skin of the hull, both sides, square inches."""
+    return _wetted_area(H, np.full(len(H.x), 1e9))
+
+
 def upright(H, disp_lb, lcg=None, rho=LB_PER_IN3_FRESH):
     """Full upright hydrostatics at a displacement. Returns a dict, inches and pounds."""
     h0, tau = equilibrium(H, disp_lb, lcg, rho)

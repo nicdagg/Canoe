@@ -19,7 +19,14 @@ def handling(H, up):
     lwl = up['lwl_in']
     ends = np.abs(x - (up['x_aft'] + up['x_fwd']) / 2) > 0.3 * lwl
     end_ratio = float(d[ends].mean() / d.max()) if ends.any() else 0.0
+    # Tracking: a hull resists being swung by the water its ends push sideways, which goes with draft squared
+    # times distance from the pivot squared. 1 is a straight keel at full draft end to end, 0 spins freely.
+    d2 = d * d
+    A2 = hs.trapz(d2, x)
+    x2 = hs.trapz(d2 * x, x) / A2 if A2 > 0 else 0.0
+    yaw = hs.trapz(d2 * (x - x2) ** 2, x)
     return dict(
+        track_index=float(yaw / (d.max() ** 2 * lwl ** 3 / 12)) if d.max() > 0 else 0.0,
         lateral_area_ft2=A / 144,
         # radius of gyration of the lateral plane over waterline length: higher holds a line, lower spins
         turn_index=math.sqrt(I / A) / lwl,
@@ -29,11 +36,22 @@ def handling(H, up):
     )
 
 
-def _speed_at_power(H, up, off, depth, water, watts, curve=None):
+def reach(H, up, paddlers):
+    """From the middle of the boat out to the gunwale and down to the water, at each paddler's seat (inches)."""
+    p, M = H.p, H.model
+    h0 = float(np.interp(M.mid, H.x, up['zw']))
+
+    def at(f):
+        s = M.at(-p['length'] / 2 + f * p['length'], 31)
+        return float(s.y[-1] + (s.sheer - h0))
+    return (at(0.72) + at(0.15)) / 2 if paddlers >= 2 else at(0.5 + M.mid / p['length'])
+
+
+def _speed_at_power(H, up, off, depth, water, watts, curve=None, front=None):
     """Calm-water speed (mph) that the given effective power holds, by secant on P(v)."""
     if curve is not None:
         return rs.speed_at_power(curve, watts)
-    P = lambda v: float(rs.calm_water(H, up, [v], depth, water, offsets=off)['power_w'][0]) - watts
+    P = lambda v: float(rs.calm_water(H, up, [v], depth, water, offsets=off, front_ft2=front)['power_w'][0]) - watts
     a, b = 3.0, 5.0
     fa, fb = P(a), P(b)
     for _ in range(12):
@@ -50,11 +68,15 @@ def _speed_at_power(H, up, off, depth, water, watts, curve=None):
 def evaluate(params, cond, detail=False, angles=None):
     """Metrics for a design in a condition. detail=True also returns curves for plotting."""
     H = hs.SampledHull(params)
+    skin = hs.skin_area(H) / 144
+    if params.get('hullPerFt2', 0) > 0:    # in a shape search the hull weight follows the amount of skin
+        H.p = dict(H.p, hullLb=params['hullPerFt2'] * skin)
     lc = st.load_case(H.p, cond.get('load'))
     water = cond.get('water', 'fresh')
     rho = hs.LB_PER_IN3_SALT if water == 'salt' else hs.LB_PER_IN3_FRESH
     cap = hs.capacity(H, rho)
-    out = dict(capacity_lb=cap, capacity_margin_lb=cap - lc['disp_lb'], disp_lb=lc['disp_lb'])
+    out = dict(capacity_lb=cap, capacity_margin_lb=cap - lc['disp_lb'], disp_lb=lc['disp_lb'], skin_ft2=skin,
+               hull_lb=H.p['hullLb'])
     if cap <= lc['disp_lb'] * 1.02:
         out['overloaded'] = True
         return out
@@ -63,12 +85,19 @@ def evaluate(params, cond, detail=False, angles=None):
     depth = cond.get('depth_m') or math.inf
     v0 = cond.get('speed_mph', 4.0)
     band = [v0 - 0.5, v0, v0 + 0.5]
-    off = rs.centreplane_offsets(H, up)
-    cw = rs.calm_water(H, up, band, depth, water, cond.get('wind_mph', 0.0), offsets=off)
+    fb_front, fb_side = rs.frontal_windage(H, up)
+    # Drag is worked out on the hull as it rides at cruise: settled a little deeper than at rest.
+    sq = rs.squat(H, up, v0 * rs.MPH, depth)
+    run = up
+    if sq['sink_in'] > 1e-4:
+        run = hs.upright(H, lc['disp_lb'] + sq['sink_in'] * up['awp_ft2'] * 144 * rho, lc['lcg_in'], rho)
+    off = rs.centreplane_offsets(H, run)
+    cw = rs.calm_water(H, run, band, depth, water, cond.get('wind_mph', 0.0), offsets=off, front_ft2=fb_front)
     paddlers = cond.get('paddlers') or (2 if lc['crew_lb'] > 260 else 1)
     pw = cond.get('power_w_per_paddler', 40.0) * paddlers
-    curve = rs.calm_water(H, up, np.arange(1.0, 8.01, 0.25), depth, water, 0.0, offsets=off) if detail else None
-    fb_front, fb_side = rs.frontal_windage(H, up)
+    curve = (rs.calm_water(H, run, np.arange(1.0, 8.01, 0.25), depth, water, 0.0, offsets=off, front_ft2=fb_front)
+             if detail else None)
+    hd = handling(H, up)
     out.update(
         draft_mid_in=up['draft_mid_in'], draft_max_in=up['draft_max_in'], freeboard_mid_in=up['freeboard_mid_in'],
         lwl_in=up['lwl_in'], bwl_in=up['bwl_in'], lwl_bwl=up['lwl_bwl'], cb=up['cb'], cp=up['cp'], cm=up['cm'],
@@ -80,11 +109,13 @@ def evaluate(params, cond, detail=False, angles=None):
         secondary_ratio=stab['secondary_ratio'], dyn_area_inrad=stab['dyn_area_inrad'],
         calm_resistance_lbf=float(np.mean(cw['total_lbf'])), friction_lbf=float(np.mean(cw['friction_lbf'])),
         wave_lbf=float(np.mean(cw['wave_lbf'])), air_lbf=float(np.mean(cw['air_lbf'])),
-        speed_at_power_mph=_speed_at_power(H, up, off, depth, water, pw, curve), power_w=pw, paddlers=paddlers,
+        speed_at_power_mph=_speed_at_power(H, run, off, depth, water, pw, curve, fb_front), power_w=pw, paddlers=paddlers,
+        sinkage_in=sq['sink_in'], running_trim_in=sq['trim_in'], squat_cs=sq['cs'],
+        reach_in=reach(H, up, paddlers), windage_ratio=fb_side / hd['lateral_area_ft2'],
         froude=float(cw['fn'][1]), depth_froude=float(cw['fh'][1]),
         front_windage_ft2=fb_front, side_windage_ft2=fb_side,
         gunwale_beam_in=params['beam'] - 2 * params.get('tumble', 0),   # width at the gunwales, midship: how far a paddler reaches out
-        **handling(H, up),
+        **hd,
     )
     waves = cond.get('waves')
     R = None

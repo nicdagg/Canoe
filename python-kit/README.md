@@ -53,7 +53,9 @@ own righting-moment curve so it shows water over the gunwale and capsizes).
 | Calm-water drag | ITTC-1957 friction with a Hoerner form factor, plus Michell thin-ship wave drag extended to finite water depth | drag at cruise (averaged over ±0.5 mph to avoid rewarding a lucky hollow), wave-making share, speed held at a power budget, power curve |
 | Wind | Head-on hull windage above the waterline | added drag in a headwind, side area for crosswind drift |
 | Waves | Heave and pitch strip theory in head seas (Lewis sections, Grim damping, Gerritsma-Beukelman form) in a JONSWAP sea | significant heave and pitch, chance a wave reaches the bow sheer, added drag in waves |
-| Handling | Lateral plane (underwater profile) | turn index (higher holds a line, lower spins), end immersion, total rocker |
+| Handling | Lateral plane (underwater profile) | tracking index (how far the underwater side area is spread toward the ends: higher holds a line, lower spins), end immersion, total rocker |
+| Fit and wind | Gunwale width and freeboard at the seats, side area above and below the water | reach to the water (how far a paddler leans out), windage ratio (how much a crosswind pushes the hull around) |
+| Squat | Tuck slender-body sinkage and trim, deep or shallow water | sinkage and running trim at cruise; drag is worked out on the sunk hull |
 
 The load model (in `stability.load_case`): the hull's centre of gravity at 45% of its
 depth, 85% of the payload is crew and 15% gear 4 in off the bottom. Crew height is
@@ -120,11 +122,17 @@ weight and payload are fixed unless you add them.
   absolute numbers, and it ignores roll (which depends mostly on the paddlers).
 - Stability is static. Paddlers balance actively, so a narrow hull with GM near zero
   can still be paddled; treat GM limits as comfort margins, not capsize lines.
-- The hull is held at its static waterline at speed (no dynamic sinkage or trim).
-- The wave-drag model rewards rocker and wide, shallow sections more than real
-  canoes bear out. In the sample calm-lake search it pushed beam to 37 in and rocker
-  to 5 in. Hold beam with `--bound beam=lo:hi` (or leave it out of `--vary`) and cap
-  rocker when you want a believable flat-water hull.
+- At speed the hull sinks and trims a little (squat). This is included, and it turned
+  out small: about 3% more drag at cruise in deep water, more in shallows.
+- Thin-ship theory badly overstates wave drag at very low speed, so it is faded out
+  below a speed-to-length ratio where real hulls make almost no waves. The fade was
+  set against published tow figures for a sea kayak (about 2.0 lbf at 3 kn, 3.9 at
+  4 kn, 5.0 at 4.5 kn).
+- Earlier versions of the calm-lake search ran off to a 37 in beam with 5 in of
+  rocker. The drag model was only part of the cause; the scoring had nothing that
+  made width or rocker cost anything. It now counts tracking, reach to the water,
+  crosswind and the extra hull weight of a bigger skin, and the same search settles
+  near 32 to 33 in beam with about 1.5 in of rocker.
 
 Use the numbers to compare shapes and see which way a change pushes things, and
 check a shortlisted design against real-world experience before building a mold.

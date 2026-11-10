@@ -11,6 +11,7 @@ import numpy as np
 
 from .analysis import evaluate
 from .geometry import END_KEYS, RANGES
+from .hydrostatics import SampledHull, skin_area
 from .scoring import score
 
 # Search ranges: narrower than the slider ranges, to stay in sensible canoe territory.
@@ -85,6 +86,9 @@ def optimize(base, cond, names=None, link_ends=True, bounds=None, pop=None, gens
         k = 'b_' + n if (n in END_KEYS and link_ends) else n
         start.append(base[k])
     X[0] = np.clip(start, lo, hi)                   # keep the starting design in the population
+    # The same laminate on a bigger hull weighs more: hull weight follows the skin area while shapes are tried.
+    per_ft2 = base['hullLb'] / (skin_area(SampledHull(base)) / 144)
+    base = dict(base, hullPerFt2=per_ft2)
     job = dict(base=base, names=names, link=link_ends, cond=cond)
     workers = workers or min(os.cpu_count() or 1, 8)
     os.environ.setdefault('OMP_NUM_THREADS', '1')
@@ -116,5 +120,7 @@ def optimize(base, cond, names=None, link_ends=True, bounds=None, pop=None, gens
                     ' '.join('%s=%.2f' % (n, X[ib, k]) for k, n in enumerate(names))))
     ib = int(np.argmin(f))
     best = _apply(base, names, X[ib], link_ends)
+    best.pop('hullPerFt2')
+    best['hullLb'] = float(round(per_ft2 * skin_area(SampledHull(best)) / 144))
     return dict(params=best, score=-f[ib], names=names, bounds=bnds.tolist(), history=history,
                 population=[_apply(base, names, x, link_ends) for x in X[np.argsort(f)[:5]]])

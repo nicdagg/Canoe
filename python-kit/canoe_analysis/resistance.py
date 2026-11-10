@@ -16,7 +16,8 @@ which reduces to the classical deep-water Michell integral as h -> infinity. The
 offsets are treated as piecewise linear in x and z and the transforms are taken
 exactly over each panel, so the high-wavenumber tail does not alias.
 
-Limitations: the hull is held at its static waterline (no dynamic sinkage or trim),
+The evaluation runs this on the hull as it settles at cruise (see squat), and fades the result out at low
+speed where thin-ship theory over-predicts (see slow_fade). Limitations: running trim is reported but not applied,
 and thin-ship theory tends to overstate the humps and hollows of the curve.
 """
 import math
@@ -147,6 +148,69 @@ def michell(offsets, U, depth=math.inf, rho=999.1, nk=1200):
     return 4 * rho * U * U / math.pi * float(np.sum(integrand * ws))
 
 
+def squat(H, up, U, depth_m=math.inf, n=80):
+    """Sinkage and trim under way, inches (Tuck's slender-body squat).
+
+        sinkage = Cs V / L^2 * F,   trim = Ct V / L^3 * F,   F = Fh^2 / sqrt(1 - Fh^2),   Fh = U / sqrt(g h)
+        Cs = -L^2 / (2 pi V Awp) IntInt B'(x) S'(xi) ln|x - xi|,  Ct likewise with (x B)' and the waterplane inertia
+
+    Tuck's result is for shallow water. In deep water the same formula with h = 0.3 Lwl matches towing-tank
+    sinkage of slender hulls (about 0.1 to 0.2% of length at Froude 0.3), so the depth is capped there.
+    Returns dict(sink_in, trim_in over the waterline length with bow down positive, cs, fh).
+    """
+    xa, xf = up['x_aft'], up['x_fwd']
+    L = xf - xa
+    if not (L > 0 and U > 0):
+        return dict(sink_in=0.0, trim_in=0.0, cs=0.0, fh=0.0)
+    xs = np.linspace(xa, xf, n + 1)
+    dx = L / n
+    B = 2 * np.interp(xs, up['x'], up['hw'])
+    S = np.interp(xs, up['x'], up['area'])
+    B[0] = B[-1] = S[0] = S[-1] = 0.0
+    lcf = up['lcf_in']
+    wts = np.ones(n + 1)
+    wts[0] = wts[-1] = 0.5
+    IL = float(np.sum(wts * B * (xs - lcf) ** 2) * dx)
+
+    def Gf(u):
+        u = np.abs(u)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(u < 1e-12, 0.0, u * u / 2 * np.log(np.where(u < 1e-12, 1.0, u)) - 0.75 * u * u)
+
+    a, b = xs[:-1, None], xs[1:, None]
+    c, d = xs[None, :-1], xs[None, 1:]
+    K = -(Gf(b - d) - Gf(b - c) - Gf(a - d) + Gf(a - c))     # IntInt ln|x - xi| over each pair of panels
+    Bp = np.diff(B) / dx
+    Mp = np.diff((xs - lcf) * B) / dx
+    Sp = np.diff(S) / dx
+    Iz = float(Bp @ K @ Sp)
+    It = float(Mp @ K @ Sp)
+    awp, V = up['awp_ft2'] * 144, up['vol_in3']
+    h = min(depth_m, 0.3 * L * IN)
+    fh = min(U / math.sqrt(G * h), 0.95)
+    F = fh * fh / math.sqrt(1 - fh * fh)
+    cs = -L * L / (2 * math.pi * V * awp) * Iz
+    ct = -L ** 3 / (2 * math.pi * V * IL) * It
+    return dict(sink_in=max(0.0, cs * V / (L * L) * F), trim_in=ct * V / L ** 3 * F * L, cs=cs, fh=fh)
+
+
+def slow_fade(U, L, depth_m=math.inf):
+    """Fade for the Michell wave drag at low speed, 0 to 1.
+
+    Thin-ship theory has no viscosity and no breaking, so it over-predicts the short waves a hull makes when it
+    moves slowly: below a length Froude number of about 0.2 real wave drag all but vanishes. The fade is set against
+    published drag figures for sea kayaks at 3 to 4.5 knots. It works on the length of the longest wave the hull can
+    make, so the long waves of shallow water are left alone.
+    """
+    if U <= 0:
+        return 0.0
+    km = _kx_min(G / (U * U), depth_m)
+    if not km > 0:
+        return 1.0
+    f4 = (1 / (km * L)) ** 2
+    return f4 / (f4 + 0.2 ** 4)
+
+
 def form_factor(up):
     """Hoerner's streamlined-body form factor using the double-body equivalent diameter."""
     d = math.sqrt(4 * 2 * up['amax_in2'] / math.pi)
@@ -172,20 +236,20 @@ def frontal_windage(H, up):
     return front / 144, side / 144
 
 
-def calm_water(H, up, speeds_mph, depth_m=math.inf, water='fresh', headwind_mph=0.0, offsets=None):
+def calm_water(H, up, speeds_mph, depth_m=math.inf, water='fresh', headwind_mph=0.0, offsets=None, front_ft2=None):
     """Resistance breakdown (lbf) at each speed. Returns a dict of arrays."""
     w = WATER[water]
     off = offsets or centreplane_offsets(H, up)
     S = up['wetted_ft2'] * 0.09290304
     L = up['lwl_in'] * IN
     k1 = form_factor(up)
-    front_ft2, _ = frontal_windage(H, up)
+    front_ft2 = front_ft2 if front_ft2 is not None else frontal_windage(H, up)[0]
     out = dict(speed_mph=np.asarray(speeds_mph, float), friction_lbf=[], wave_lbf=[], air_lbf=[], total_lbf=[],
                fn=[], fh=[], power_w=[])
     for v in speeds_mph:
         U = v * MPH
         Rf = 0.5 * w['rho'] * U * U * S * ittc57(U * L / w['nu']) * k1
-        Rw = michell(off, U, depth_m, w['rho'])
+        Rw = michell(off, U, depth_m, w['rho']) * slow_fade(U, L, depth_m)
         Ua = U + headwind_mph * MPH
         Ra = 0.5 * RHO_AIR * 0.9 * front_ft2 * 0.09290304 * Ua * abs(Ua)
         Rt = Rf + Rw + Ra
